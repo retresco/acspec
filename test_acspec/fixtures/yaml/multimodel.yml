@@ -1,0 +1,14 @@
+
+todo_list:
+  todos:
+    type:
+      list:
+        model: todo
+
+todo:
+  title:
+    type:
+      simple: string
+  done:
+    type:
+      simple: boolean

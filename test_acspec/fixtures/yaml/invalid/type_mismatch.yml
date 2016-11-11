@@ -1,0 +1,6 @@
+
+content:
+  type:
+    simple: string
+    list:
+      simple: string

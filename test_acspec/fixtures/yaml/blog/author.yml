@@ -1,0 +1,10 @@
+
+first_name:
+  type:
+    simple: string
+id:
+  type:
+    simple: string
+last_name:
+  type:
+    simple: string

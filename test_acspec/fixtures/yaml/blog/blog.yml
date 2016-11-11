@@ -1,0 +1,6 @@
+
+
+posts:
+  type:
+    list:
+      model: post

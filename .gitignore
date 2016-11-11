@@ -1,0 +1,15 @@
+
+.Python
+.cache
+.coverage
+
+*.egg-info
+*.pyc
+*.pyo
+*.swp
+*.log
+*.sql
+__pycache__
+
+/env
+/test_acspec/.cache

@@ -1,0 +1,20 @@
+
+author:
+  required: true
+  serialize_when_none: false
+  type:
+    model: author
+id:
+  type:
+    simple: string
+tags:
+  serialize_when_none: false
+  type:
+    list:
+      simple: string
+text:
+  type:
+    simple: string
+title:
+  type:
+    simple: string
