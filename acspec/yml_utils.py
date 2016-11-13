@@ -6,6 +6,11 @@ from yaml.resolver import Resolver
 from yaml.parser import Parser
 from yaml.constructor import SafeConstructor
 
+try:
+    unicode # PY2
+except:
+    unicode = str  # PY3
+
 
 def NodeFactory(base_class):
     class NodeBase(base_class):
@@ -13,12 +18,15 @@ def NodeFactory(base_class):
         def __init__(self, *args, **kwargs):
             if "node_info" in kwargs:
                 self.node_info = kwargs.pop("node_info")
-            super(NodeBase, self).__init__(*args, **kwargs)
 
-        def __new__(self, x, *args, **kwargs):
+            # Python3 compatibility: str#__init__ does not accept arguments
+            if base_class != str:
+                super(NodeBase, self).__init__(*args, **kwargs)
+
+        def __new__(cls, x, *args, **kwargs):
             if "node_info" in kwargs:
                 del kwargs["node_info"]
-            return base_class.__new__(self, x, *args, **kwargs)
+            return base_class.__new__(cls, x, *args, **kwargs)
 
     name = '{}_node'.format(base_class.__name__)
     node_class = type(name, (NodeBase,), {})

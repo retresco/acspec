@@ -10,7 +10,7 @@ with open(os.path.join(os.path.dirname(__file__), name + '/__init__.py')) as f:
         f.read(), re.M
     )
     if not _versions:
-        raise StandardError(
+        raise Exception(
             "Please provide a version in your __init__.py corresponding to " +
             "the format: __version__ = '<version>'"
         )
@@ -44,6 +44,11 @@ setup(
     ],
     tests_require=tests_require,
     extras_require=extras_require,
+    classifiers=[
+        'Intended Audience :: Developers',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.5'
+    ],
     entry_points={
         'console_scripts': [
             'extract_specs = acspec.scripts.extract_specs:extract_specs'

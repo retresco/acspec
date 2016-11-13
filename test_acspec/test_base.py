@@ -49,8 +49,8 @@ class TestAcspec(object):
 
     def test_should_iterate_over_model_classes(self, acspec):
         model_classes = list(acspec.itermodelclasses())
-        assert [m.__name__ for m in model_classes] == \
-            ['BlogModel', 'PostModel', 'AuthorModel']
+        assert set([m.__name__ for m in model_classes]) == \
+            set(('AuthorModel', 'BlogModel', 'PostModel'))
 
     def test_should_deserialize_and_serialize_a_model(
         self, acspec, post_data

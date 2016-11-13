@@ -58,7 +58,7 @@ class Acspec(object):
         # )
 
     def _resolve_classes(self):
-        pre_emitted = self._class_mapping.keys() + DEFAULT_MAPPINGS.keys()
+        pre_emitted = self._get_known_bases()
         for name, spec in topological_iteritems(
             self._raw_specs, pre_emitted=pre_emitted
         ):
@@ -73,6 +73,13 @@ class Acspec(object):
                 # inform over replacing mapping
                 # or append these mappings instead of replacing?
                 self._class_mapping[name] = self._models[name].model_class
+
+    def _get_known_bases(self):
+        bases = list(self._class_mapping.keys())
+        for k in DEFAULT_MAPPINGS:
+            if k not in bases:
+                bases.append(k)
+        return bases
 
     def _resolve_references(self):
         for model_name, v in iteritems(self._models):

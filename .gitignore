@@ -12,4 +12,5 @@
 __pycache__
 
 /env
+/env3
 /test_acspec/.cache

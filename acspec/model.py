@@ -38,14 +38,14 @@ TO_ACSPEC_TYPE = {
 }
 
 
-class AcspecContextError(StandardError):
+class AcspecContextError(Exception):
     pass
 
 
-class UnresolvedModelError(StandardError):
+class UnresolvedModelError(Exception):
     pass
 
-class MissingBaseClassMappingError(StandardError):
+class MissingBaseClassMappingError(Exception):
     pass
 
 
@@ -97,6 +97,7 @@ def _type_keys_message(type_keys, data):
         if hasattr(data[type_key], 'node_info'):
             node_infos[type_key] = data[type_key].node_info
         r.append(type_key)
+    r.sort()
     r = ", ".join(r)
     if node_infos:
         r += " ({})".format([
@@ -109,9 +110,8 @@ def _type_keys_message(type_keys, data):
 
 
 class TypeInfo(BaseModel):
-
     simple = StringType(
-        choices=TO_SCHEMATICS_TYPE.keys(), serialize_when_none=False
+        choices=list(TO_SCHEMATICS_TYPE.keys()), serialize_when_none=False
     )
     model = StringType(serialize_when_none=False)
 
@@ -228,7 +228,7 @@ class MetaFieldDescriptor(BaseModel):
     def _kwargs(self):
         return {
             k: v
-            for k, v in self.to_primitive().iteritems()
+            for k, v in iteritems(self.to_primitive())
             if k not in ["type"]
         }
 

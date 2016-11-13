@@ -233,6 +233,30 @@ Example usage:
     # will create a yaml acspec file for every model found in the module
 
 
+## Developing
+
+All rules that need virtualenv accept a PYTHON variable. If set to 'python3',
+`virtualenv -p python3` will be used, else the default.
+
+To set up the environment for python2 and 3:
+
+    make all-platforms
+
+
 ## Test
 
+To run tests with default virtualenv (python2):
+
     make test
+
+Python3:
+
+    make test PYTHON=python3
+
+All:
+
+    make test-all-platforms
+
+The test rules accept a TEST_DIR variable to make it easy to test single files:
+
+    make test-all-platforms TEST_DIR=test_acspec/test_model.py

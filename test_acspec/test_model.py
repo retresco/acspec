@@ -20,7 +20,7 @@ class TestModel(object):
 
         assert excinfo.value.messages == {
             'type': {'dict': [
-                "Cannot have multiple types: simple, list"
+                "Cannot have multiple types: list, simple"
             ]}
         }
 
