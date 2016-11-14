@@ -8,3 +8,8 @@ id:
 last_name:
   type:
     simple: string
+birthday:
+  type:
+    simple: date_time
+  formats: ["%Y-%m-%d"]
+  serialized_format: "%Y-%m-%dT%H:%M:%SZ"

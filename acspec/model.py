@@ -5,7 +5,7 @@ from schematics.models import Model as SchematicsModel
 from schematics.models import FieldDescriptor
 from schematics.models import metacopy
 from schematics.types import StringType, BooleanType, BaseType, IntType
-from schematics.types import FloatType, LongType, DateType
+from schematics.types import FloatType, LongType, DateType, DateTimeType
 from schematics.types.compound import ListType, DictType, ModelType
 from schematics.exceptions import ValidationError
 
@@ -25,6 +25,7 @@ TO_SCHEMATICS_TYPE = {
     "long": LongType,
     "date": DateType,
     "timestamp": DateType,
+    "date_time": DateTimeType,
     "boolean": BooleanType,
     "model": ModelType,
     "list": ListType,

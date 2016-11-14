@@ -18,6 +18,46 @@ class TestYspec(object):
         assert issubclass(acspec.PostModel, BaseModel)
         assert issubclass(acspec.BlogModel, BaseModel)
 
+    def test_should_store_birthday_with_format(self):
+        from datetime import datetime
+
+        acspec = Yspec.load(os.path.join(
+            package_root, "test_acspec", "fixtures", "yaml", "blog"
+        ))
+        birthday = datetime(1983, 6, 4)
+        author = acspec.AuthorModel({
+            "first_name": "Hans",
+            "last_name": "Schmidt",
+            "birthday": birthday
+        })
+
+        assert author.birthday == birthday
+
+        # the format "%Y-%m-%d" strips time information
+        author = acspec.AuthorModel({
+            "first_name": "Hans",
+            "last_name": "Schmidt",
+            "birthday": '1983-06-04T00:00:00'
+        })
+        assert author.birthday == birthday
+        assert author.to_primitive()['birthday'] == \
+            '1983-06-04T00:00:00.000000'
+
+        with pytest.raises(
+            schematics.exceptions.ModelConversionError
+        ) as excinfo:
+            author = acspec.AuthorModel({
+                "first_name": "Hans",
+                "last_name": "Schmidt",
+                "birthday": 'invalid1983-06-04T00:00:00'
+            })
+            Yspec.load(file_path)
+
+        assert 'birthday' in excinfo.value.messages
+        assert len(excinfo.value.messages['birthday']) == 1
+        assert excinfo.value.messages['birthday'][0] == \
+            'Could not parse invalid1983-06-04T00:00:00. Should be ISO8601.'
+
     def test_should_specify_models_from_file(self):
         acspec = Yspec.load(os.path.join(
             package_root, "test_acspec", "fixtures", "yaml", "multimodel.yml"
