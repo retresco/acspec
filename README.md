@@ -38,6 +38,7 @@ There are 4 kinds of types, specified by the key of the type dict:
 "long": LongType
 "date": DateType
 "timestamp": DateType
+"date_time": DateTimeType
 "boolean": BooleanType
 "base": BaseType
 ```
