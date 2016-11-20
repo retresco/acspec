@@ -6,6 +6,7 @@ from schematics.models import FieldDescriptor
 from schematics.models import metacopy
 from schematics.types import StringType, BooleanType, BaseType, IntType
 from schematics.types import FloatType, LongType, DateType, DateTimeType
+from schematics.types import EmailType, URLType
 from schematics.types.compound import ListType, DictType, ModelType
 from schematics.exceptions import ValidationError
 
@@ -19,18 +20,20 @@ from acspec.dsl import iterspec, get_option
 # ]
 
 TO_SCHEMATICS_TYPE = {
-    "string": StringType,
-    "integer": IntType,
-    "float": FloatType,
-    "long": LongType,
-    "date": DateType,
-    "timestamp": DateType,
-    "date_time": DateTimeType,
-    "boolean": BooleanType,
-    "model": ModelType,
-    "list": ListType,
-    "dict": DictType,
     "base": BaseType,
+    "boolean": BooleanType,
+    "date_time": DateTimeType,
+    "date": DateType,
+    "dict": DictType,
+    "email": EmailType,
+    "float": FloatType,
+    "integer": IntType,
+    "list": ListType,
+    "long": LongType,
+    "model": ModelType,
+    "string": StringType,
+    "timestamp": DateType,
+    "url": URLType
 }
 
 TO_ACSPEC_TYPE = {
