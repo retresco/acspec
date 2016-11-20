@@ -16,6 +16,16 @@ class Yspec(Acspec):
         with open(specs_path) as f:
             self.add_specs(load_with_node_infos(f))
 
+    @property
+    def source_files(self):
+        files = []
+        for key, raw_spec in self._raw_specs.items():
+            if hasattr(raw_spec, 'node_info'):
+                file_name = raw_spec.node_info.start_mark.name
+                if file_name not in files:
+                    files.append(file_name)
+        return files
+
     @classmethod
     def load(cls, path, finalize=True, **kwargs):
         path = os.path.normpath(path)

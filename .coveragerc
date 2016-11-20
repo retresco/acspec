@@ -2,3 +2,7 @@
 source = acspec
 omit =
     acspec/scripts/*
+[report]
+exclude_lines:
+    # PY2
+    # PY3

@@ -65,7 +65,29 @@ class TestYspec(object):
         assert issubclass(acspec.TodoListModel, BaseModel)
         assert issubclass(acspec.TodoModel, BaseModel)
 
-    def test_should_print_file_name_and_line_number_if_available(
+    def test_source_files(
+        self, model_specs
+    ):
+        yspec = Yspec.load(os.path.join(
+            package_root, "test_acspec", "fixtures", "yaml", "blog"
+        ))
+        files = yspec.source_files
+        files.sort()
+
+        assert len(files) == 3
+        assert files[0].endswith('test_acspec/fixtures/yaml/blog/author.yml')
+        assert files[1].endswith('test_acspec/fixtures/yaml/blog/blog.yml')
+        assert files[2].endswith('test_acspec/fixtures/yaml/blog/post.yml')
+
+        yspec = Yspec.load(os.path.join(
+            package_root, "test_acspec", "fixtures", "yaml", "multimodel.yml"
+        ))
+        files = yspec.source_files
+
+        assert len(files) == 1
+        assert files[0].endswith('test_acspec/fixtures/yaml/multimodel.yml')
+
+    def test_get_should_print_file_name_and_line_number_if_available(
         self, model_specs
     ):
         file_path = os.path.join(

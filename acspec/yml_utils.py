@@ -8,7 +8,7 @@ from yaml.constructor import SafeConstructor
 
 try:
     unicode # PY2
-except:
+except:  # PY3
     unicode = str  # PY3
 
 
