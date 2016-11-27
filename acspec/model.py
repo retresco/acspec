@@ -243,16 +243,16 @@ class MetaFieldDescriptor(BaseModel):
 
 class ResolveableModel(object):
 
-    def __init__(self, model_class, contextual_type_specs):
+    def __init__(self, model_class, contextual_field_descriptors):
         self.model_class = model_class
-        self.contextual_type_specs = contextual_type_specs
+        self.contextual_field_descriptors = contextual_field_descriptors
         self.resolved = False
 
     def resolve(self, context):
-        for name, type_spec in iteritems(self.contextual_type_specs):
+        for name, field_descriptor in iteritems(self.contextual_field_descriptors):
             self.model_class.append_field(
                 name,
-                type_spec.schematics_field_descriptor(context=context)
+                field_descriptor.schematics_field_descriptor(context=context)
             )
         self.resolved = True
         return self.model_class
@@ -263,73 +263,55 @@ DEFAULT_MAPPINGS = {
 }
 
 
-def _find_base_classes(name, spec, class_mapping=None):
-    if class_mapping is None:
-        class_mapping = {}
-    for k, v in iteritems(DEFAULT_MAPPINGS):
-        if k not in class_mapping:
-            class_mapping[k] = v
+class ResolvableFactory(object):
 
-    r = []
-    for base in get_option(spec, 'bases', []):
-        if base in class_mapping:
-            r.append(class_mapping[base])
-        else:
-            raise MissingBaseClassMappingError(
-                "Please provide a class_mapping for '{}'".format(base)
-            )
+    base_model = BaseModel
 
-    # TODO: how to provide additional mappings for a model name?
-    # Note: the next lines conflict if models inherit from each other
-    # if name in class_mapping:
-    #     r.append(class_mapping[name])
+    def __init__(self, class_mapping):
+        self.class_mapping = class_mapping
 
-    if has_option(class_mapping, "bases"):
-        r += get_option(class_mapping, "bases")
+    def get_resolvable(self, name, spec):
+        bases = self._find_base_classes(name, spec)
 
-    if not any([isinstance(base, BaseModel) for base in r]):
-        r.append(BaseModel)
+        model_class = type(str(name), bases, {})
+        contextual_field_descriptors = {}
 
-    return tuple(r)
+        for name, constraints in iterspec(spec):
+            field_descriptor = self._get_field_descriptor(name, constraints)
+            if field_descriptor.requires_context():
+                contextual_field_descriptors[name] = field_descriptor
+            else:
+                model_class.append_field(
+                    name,
+                    field_descriptor.schematics_field_descriptor()
+                )
 
+        return ResolveableModel(model_class, contextual_field_descriptors)
 
-def ResolveableModelFactory(name, spec, class_mapping=None):
-    bases = _find_base_classes(name, spec, class_mapping)
+    def _find_base_classes(self, name, spec):
+        r = []
+        for base in get_option(spec, 'bases', []):
+            if base in self.class_mapping:
+                r.append(self.class_mapping[base])
+            else:
+                raise MissingBaseClassMappingError(
+                    "Please provide a class_mapping for '{}'".format(base)
+                )
 
-    model_class = type(str(name), bases, {})
-    contextual_type_specs = {}
+        # TODO: how to provide additional mappings for a model name?
+        # Note: the next lines conflict if models inherit from each other
+        # if name in class_mapping:
+        #     r.append(class_mapping[name])
 
-    for k, v in iterspec(spec):
-        type_spec = MetaFieldDescriptor(v, strict=False)
-        type_spec.validate()
-        if type_spec.requires_context():
-            contextual_type_specs[k] = type_spec
-        else:
-            model_class.append_field(
-                k,
-                type_spec.schematics_field_descriptor()
-            )
+        if has_option(self.class_mapping, "bases"):
+            r += get_option(self.class_mapping, "bases")
 
-    return ResolveableModel(model_class, contextual_type_specs)
+        if not any([isinstance(base, self.base_model) for base in r]):
+            r.append(self.base_model)
 
+        return tuple(r)
 
-# def ModelFactory(name, spec, class_mapping=None, context=None):
-#     bases = _find_base_classes(name, spec, class_mapping)
-#
-#     model_class = type(name, bases, {})
-#
-#     for k, v in iterspec(spec):
-#         type_spec = MetaFieldDescriptor(v, strict=False)
-#         type_spec.validate()
-#         if type_spec.requires_context():
-#             if context is None:
-#                 raise AcspecContextError(
-#                     "No context provided to resolve model"
-#                 )
-#
-#         model_class.append_field(
-#             k,
-#             type_spec.schematics_field_descriptor(context=context)
-#         )
-#
-#     return model_class
+    def _get_field_descriptor(self, name, spec):
+        field_descriptor = MetaFieldDescriptor(spec, strict=False)
+        field_descriptor.validate()
+        return field_descriptor

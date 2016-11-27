@@ -2,7 +2,7 @@ import sys
 from types import ModuleType
 
 from six import iteritems
-from acspec.model import ResolveableModelFactory, UnresolvedModelError
+from acspec.model import ResolvableFactory, UnresolvedModelError
 from acspec.model import DEFAULT_MAPPINGS
 from acspec.utils import camelize, is_valid_identifier, topological_iteritems
 from acspec.dsl import has_option, get_option, iterspec
@@ -13,7 +13,7 @@ class Acspec(object):
     __is_frozen = False
 
     def __init__(
-        self, specs=None, model_factory=ResolveableModelFactory,
+        self, specs=None, resolvable_factory=ResolvableFactory,
         finalize=True, class_mapping=None,
         model_suffix=None
     ):
@@ -21,13 +21,12 @@ class Acspec(object):
             specs = {}
         if model_suffix is None:
             model_suffix = "Model"
-        if class_mapping is None:
-            class_mapping = {}
-        else:
-            class_mapping = class_mapping.copy()
 
-        self._model_factory = model_factory
-        self._class_mapping = class_mapping
+        self._class_mapping = DEFAULT_MAPPINGS.copy()
+        if class_mapping:
+            self._class_mapping.update(class_mapping)
+
+        self._resolvable_factory = resolvable_factory(class_mapping=self._class_mapping)
         self._raw_specs = {}
         self._models = {}
         self._model_suffix = model_suffix
@@ -65,8 +64,8 @@ class Acspec(object):
                 # TODO can classes change, should we compare/raise?
                 continue
             model_name = self._get_model_name(name, spec=spec)
-            self._models[name] = self._model_factory(
-                model_name, spec, class_mapping=self._class_mapping
+            self._models[name] = self._resolvable_factory.get_resolvable(
+                model_name, spec
             )
             if name not in self._class_mapping:
                 # inform over replacing mapping
@@ -74,11 +73,7 @@ class Acspec(object):
                 self._class_mapping[name] = self._models[name].model_class
 
     def _get_known_bases(self):
-        bases = list(self._class_mapping.keys())
-        for k in DEFAULT_MAPPINGS:
-            if k not in bases:
-                bases.append(k)
-        return bases
+        return list(self._class_mapping.keys())
 
     def _resolve_references(self):
         for model_name, v in iteritems(self._models):
