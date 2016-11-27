@@ -34,7 +34,7 @@ def test_topological_iteritems_cyclic_inheritance():
         list(utils.topological_iteritems(specs))
 
     assert str(excinfo.value) == \
-        'Cyclic inheritance: subspec < spec < superspec < subspec'
+        'Cyclic inheritance: spec < superspec < subspec < spec'
 
 
 def test_underscore():
@@ -48,8 +48,8 @@ def test_camelize():
 
 
 def test_is_valid_identifier():
-    assert utils.is_valid_identifier("") == False
-    assert utils.is_valid_identifier("test model") == False
-    assert utils.is_valid_identifier("test-model") == False
-    assert utils.is_valid_identifier("test_model") == True
-    assert utils.is_valid_identifier("TestModel") == True
+    assert utils.is_valid_identifier("") is False
+    assert utils.is_valid_identifier("test model") is False
+    assert utils.is_valid_identifier("test-model") is False
+    assert utils.is_valid_identifier("test_model") is True
+    assert utils.is_valid_identifier("TestModel") is True

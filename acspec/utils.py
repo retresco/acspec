@@ -38,6 +38,7 @@ def _get_bases(spec):
 
 
 def _print_cycle(pending):
+    pending = sorted(pending, key=lambda x: x[0])
     names = [name for name, _ in pending]
 
     def relevant_base(bases):

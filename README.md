@@ -32,17 +32,18 @@ There are 4 kinds of types, specified by the key of the type dict:
 #### Simple types and their schematics counterpart:
 
 ```python
-"string": StringType
-"integer": IntType
-"float": FloatType
-"long": LongType
-"date": DateType
-"timestamp": DateType
-"date_time": DateTimeType
-"boolean": BooleanType
 "base": BaseType
+"boolean": BooleanType
+"date_time": DateTimeType
+"date": DateType
+"email": EmailType
+"float": FloatType
+"integer": IntType
+"long": LongType
+"string": StringType
+"timestamp": DateType
+"url": URLType
 ```
-
 
 #### Compound types:
 
@@ -258,6 +259,6 @@ All:
 
     make test-all-platforms
 
-The test rules accept a TEST_DIR variable to make it easy to test single files:
+The test rules accept a TEST variable to make it easy to test single files:
 
-    make test-all-platforms TEST_DIR=test_acspec/test_model.py
+    make test-all-platforms TEST=test_acspec/test_model.py

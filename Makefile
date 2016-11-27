@@ -1,6 +1,6 @@
 .PHONY: all all-platforms test test-all-platforms install install-requirements install-requirements-tests virtualenv clean
 
-TEST_DIR?=${PWD}/test_acspec
+TEST?=${PWD}/test_acspec
 
 RESET=\033[0m
 YELLOW=\033[0;33m
@@ -12,7 +12,7 @@ all-platforms:
 	$(MAKE) all PYTHON=python3
 
 test: virtualenv
-	${VIRTUALENV_DIR}/bin/py.test -vv -m 'not ignore' "${TEST_DIR}"
+	${VIRTUALENV_DIR}/bin/py.test -vv -m 'not ignore' "${TEST}"
 
 test-all-platforms:
 	$(MAKE) test
