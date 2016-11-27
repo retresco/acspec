@@ -3,11 +3,16 @@ import schematics
 from schematics.types import StringType
 
 from acspec.base import Acspec
-from acspec.model import BaseModel
-from .conftest import model_specs, acspec, post_data, author_data  # noqa
+from acspec.model import (
+    BaseModel, SchematicsModel, MissingBaseClassMappingError
+)
 
 
-@pytest.mark.usefixtures('model_specs', 'acspec', 'post_data', 'author_data')
+class CustomModel(SchematicsModel):
+    pass
+
+
+@pytest.mark.usefixtures()
 class TestAcspec(object):
 
     def test_should_specify_models_as_subclass_of_base_model(self, acspec):
@@ -21,7 +26,7 @@ class TestAcspec(object):
         from acspecctx import PostModel  # noqa
         from acspecctx import AuthorModel  # noqa
 
-    def test_should_append_to_importables(self, model_specs, acspec):
+    def test_should_append_to_importables(self, blog_specs, acspec):
         acspec.create_or_update_sys_module()
         from acspecctx import BlogModel  # noqa
         from acspecctx import PostModel  # noqa
@@ -34,14 +39,14 @@ class TestAcspec(object):
 
         assert excinfo.typename == "ImportError"
 
-        model_specs["import_error"] = {
+        blog_specs["import_error"] = {
             "test": {
                 "type": {
                     "simple": "string"
                 }
             }
         }
-        acspec = Acspec(model_specs)
+        acspec = Acspec(blog_specs)
         acspec.create_or_update_sys_module()
 
         from acspecctx import ImportErrorModel
@@ -76,12 +81,12 @@ class TestAcspec(object):
         assert model.to_primitive()["tags"] == ["test", "blog"]
 
     def test_should_handle_dict_types(
-        self, model_specs, post_data
+        self, blog_specs, post_data
     ):
-        model_specs["blog"]["messages"] = {
+        blog_specs["blog"]["messages"] = {
             "type": {"dict": {"simple": "string"}}
         }
-        acspec = Acspec(model_specs)
+        acspec = Acspec(blog_specs)
         model = acspec.BlogModel({
             "messages": {
                 "test_scope": "test_content"
@@ -134,3 +139,34 @@ class TestAcspec(object):
         blog.validate()
 
         assert blog.to_primitive() == {"posts": [post_data, post_data2]}
+
+
+@pytest.mark.usefixtures()
+class TestAcspecClassMapping(object):
+
+    def test_specify_superclass(self, basic_specs):
+        class_mapping = {
+            "custom_model": CustomModel
+        }
+        basic_specs["basic"][":bases"] = ["custom_model"]
+        acspec = Acspec(basic_specs, class_mapping=class_mapping)
+
+        assert hasattr(acspec, "BasicModel")
+        assert issubclass(acspec.BasicModel, CustomModel)
+
+    def test_raises_on_missing_superclass(self, basic_specs):
+        basic_specs["basic"][":bases"] = ["custom_model"]
+        with pytest.raises(MissingBaseClassMappingError) as excinfo:
+            Acspec(basic_specs)
+
+        assert str(excinfo.value) == \
+            "Please provide a class_mapping for 'custom_model'"
+
+    def test_provice_custom_base(self, basic_specs):
+        class_mapping = {
+            ":bases": [CustomModel]
+        }
+        acspec = Acspec(basic_specs, class_mapping=class_mapping)
+
+        assert hasattr(acspec, "BasicModel")
+        assert issubclass(acspec.BasicModel, CustomModel)

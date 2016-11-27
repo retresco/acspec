@@ -10,13 +10,14 @@ from acspec.dsl import has_option, get_option
 def topological_iteritems(specs, pre_emitted=[]):
     pending = [(name, _get_bases(spec)) for name, spec in iteritems(specs)]
     emitted = pre_emitted[:]
+    available = set(list(specs.keys()) + emitted)
     while pending:
         next_pending = []
         next_emitted = []
         for entry in pending:
             name, bases = entry
             bases.difference_update(emitted)
-            if bases:
+            if bases and bases.issubset(available):
                 next_pending.append(entry)
             else:
                 yield name, specs[name]
@@ -43,7 +44,7 @@ def _print_cycle(pending):
 
     def relevant_base(bases):
         bases = [b for b in bases if b in names]
-        assert bases
+        assert bases, "{} are not cyclic".format(names)
         return bases[0]
     pending_map = dict({
         k: relevant_base(bases) for k, bases in pending

@@ -3,7 +3,20 @@ import pytest
 
 
 @pytest.fixture()
-def model_specs(request):
+def basic_specs(request):
+    return {
+        "basic": {
+            "field": {
+                "type": {
+                    "simple": "string"
+                }
+            }
+        }
+    }
+
+
+@pytest.fixture()
+def blog_specs(request):
     return {
         "blog": {
             "posts": {
@@ -69,7 +82,7 @@ def model_specs(request):
 @pytest.fixture()
 def acspec(request):
     from acspec.base import Acspec
-    return Acspec(model_specs(request))
+    return Acspec(blog_specs(request))
 
 
 @pytest.fixture()

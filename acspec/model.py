@@ -10,7 +10,7 @@ from schematics.types import EmailType, URLType
 from schematics.types.compound import ListType, DictType, ModelType
 from schematics.exceptions import ValidationError
 
-from acspec.dsl import iterspec, get_option
+from acspec.dsl import iterspec, get_option, has_option
 
 # [
 #     'UUIDType', 'IntType', 'EmailType', 'BooleanType', 'DateType',
@@ -276,13 +276,16 @@ def _find_base_classes(name, spec, class_mapping=None):
             r.append(class_mapping[base])
         else:
             raise MissingBaseClassMappingError(
-                "Please provide a class_mapping for {}".format(base)
+                "Please provide a class_mapping for '{}'".format(base)
             )
 
     # TODO: how to provide additional mappings for a model name?
     # Note: the next lines conflict if models inherit from each other
     # if name in class_mapping:
     #     r.append(class_mapping[name])
+
+    if has_option(class_mapping, "bases"):
+        r += get_option(class_mapping, "bases")
 
     if not any([isinstance(base, BaseModel) for base in r]):
         r.append(BaseModel)

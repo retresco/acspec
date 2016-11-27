@@ -65,7 +65,7 @@ class TestYspec(object):
         assert issubclass(acspec.TodoModel, BaseModel)
 
     def test_source_files(
-        self, model_specs
+        self, blog_specs
     ):
         yspec = Yspec.load(os.path.join(
             package_root, "test_acspec", "fixtures", "yaml", "blog"
@@ -87,7 +87,7 @@ class TestYspec(object):
         assert files[0].endswith('test_acspec/fixtures/yaml/multimodel.yml')
 
     def test_get_should_print_file_name_and_line_number_if_available(
-        self, model_specs
+        self, blog_specs
     ):
         file_path = os.path.join(
             package_root, "test_acspec", "fixtures", "yaml", "invalid"
