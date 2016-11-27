@@ -95,12 +95,12 @@ def extract_specs():
 
         for model_name, model_spec in iteritems(specs):
             path = os.path.join(args.output_directory, model_name + ".yml")
-            stream = file(path, "w")
+            stream = open(path, "w")
             yaml.safe_dump(model_spec, stream, default_flow_style=False)
     else:
         stream = args.output
         if isinstance(stream, string_types):
-            stream = file(stream, "w")
+            stream = open(stream, "w")
             print("Write output to: {}".format(args.output))
 
         yaml.safe_dump(specs, stream, default_flow_style=False)
@@ -120,7 +120,7 @@ def _extract_spec_with_options(
     if overrides:
         spec[":overrides"] = overrides
     if bases:
-        if inheritance == "true" or inheritance == True:
+        if inheritance == "true" or inheritance is True:
             spec[":bases"] = bases
         elif not overrides:
             # this field is specified in superclases

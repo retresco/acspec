@@ -3,7 +3,6 @@ from types import ModuleType
 
 from six import iteritems
 from acspec.model import ResolveableModelFactory, UnresolvedModelError
-from acspec.model import MissingBaseClassMappingError
 from acspec.model import DEFAULT_MAPPINGS
 from acspec.utils import camelize, is_valid_identifier, topological_iteritems
 from acspec.dsl import has_option, get_option, iterspec

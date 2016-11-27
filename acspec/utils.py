@@ -39,6 +39,7 @@ def _get_bases(spec):
 
 def _print_cycle(pending):
     names = [name for name, _ in pending]
+
     def relevant_base(bases):
         bases = [b for b in bases if b in names]
         assert bases
@@ -81,4 +82,4 @@ def is_valid_identifier(name):
         return False
     return re.match(
         "[_A-Za-z][_a-zA-Z0-9]*$", name
-    ) != None and not keyword.iskeyword(name)
+    ) is not None and not keyword.iskeyword(name)

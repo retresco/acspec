@@ -49,6 +49,7 @@ class AcspecContextError(Exception):
 class UnresolvedModelError(Exception):
     pass
 
+
 class MissingBaseClassMappingError(Exception):
     pass
 
@@ -172,7 +173,9 @@ class TypeInfo(BaseModel):
             )
         elif info_type == "model":
             if context is None:
-                raise AcspecContextError("No context provided to resolve model")
+                raise AcspecContextError(
+                    "No context provided to resolve model"
+                )
             else:
                 model_class = context.get_model_class(self.model)
                 if model_class is None:
@@ -185,6 +188,7 @@ class TypeInfo(BaseModel):
                 )
         else:
             raise TypeError('Unknown field type {}'.format(info_type))
+
 
 TypeInfo.append_field("list", ModelType(TypeInfo, serialize_when_none=False))
 TypeInfo.append_field("dict", ModelType(TypeInfo, serialize_when_none=False))
