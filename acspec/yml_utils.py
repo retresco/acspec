@@ -1,3 +1,4 @@
+from builtins import str
 
 from yaml.composer import Composer
 from yaml.reader import Reader
@@ -5,11 +6,6 @@ from yaml.scanner import Scanner
 from yaml.resolver import Resolver
 from yaml.parser import Parser
 from yaml.constructor import SafeConstructor
-
-try:
-    unicode  # PY2
-except:  # PY3
-    unicode = str  # PY3
 
 
 def NodeFactory(base_class):
@@ -36,7 +32,7 @@ def NodeFactory(base_class):
 
 dict_node = NodeFactory(dict)
 list_node = NodeFactory(list)
-unicode_node = NodeFactory(unicode)
+str_node = NodeFactory(str)
 
 
 class NodeConstructor(SafeConstructor):
@@ -51,7 +47,7 @@ class NodeConstructor(SafeConstructor):
     def construct_yaml_str(self, node):
         # always return unicode objects
         obj = SafeConstructor.construct_scalar(self, node)
-        return unicode_node(obj, node_info=node)
+        return str_node(obj, node_info=node)
 
 
 NodeConstructor.add_constructor(

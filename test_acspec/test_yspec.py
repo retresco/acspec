@@ -51,7 +51,6 @@ class TestYspec(object):
                 "last_name": "Schmidt",
                 "birthday": 'invalid1983-06-04T00:00:00'
             })
-            Yspec.load(file_path)
 
         assert 'birthday' in excinfo.value.messages
         assert len(excinfo.value.messages['birthday']) == 1

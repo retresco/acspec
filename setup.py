@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 from setuptools import setup, find_packages
 
 name = "acspec"
@@ -15,6 +16,15 @@ with open(os.path.join(os.path.dirname(__file__), name + '/__init__.py')) as f:
             "the format: __version__ = '<version>'"
         )
     version = _versions.group(1)
+
+install_requires = [
+    'schematics >=1.1.0,<2.0.0',
+    'futures',
+    'pyyaml'
+]
+
+if sys.version_info < (3,0):
+    install_requires.append("future")
 
 tests_require = [
     'mock >= 1.0.1',
@@ -37,11 +47,7 @@ setup(
         name + "." + package for package in find_packages(name)
     ],
     include_package_data=True,
-    install_requires=[
-        'schematics >=1.1.0,<2.0.0',
-        'futures',
-        'pyyaml'
-    ],
+    install_requires=install_requires,
     tests_require=tests_require,
     extras_require=extras_require,
     classifiers=[
