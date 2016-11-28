@@ -19,6 +19,14 @@ def add_option(spec, name, value):
     spec[OPTIONS_CHARACTER + name] = value
 
 
+def append_option(spec, name, value, allow_duplicates=False):
+    key = OPTIONS_CHARACTER + name
+    if key not in spec:
+        spec[key] = []
+    if value not in spec[key] or allow_duplicates:
+        spec[key].append(value)
+
+
 def iterspec(spec):
     for k, v in iteritems(spec):
         if k.startswith(OPTIONS_CHARACTER):

@@ -1,0 +1,11 @@
+
+name:
+  type:
+    simple: string
+options:
+  type:
+    model: option
+properties:
+  type:
+    list:
+      model: property

@@ -103,3 +103,35 @@ class TestYspec(object):
             "test_acspec/fixtures/"
             "yaml/invalid/type_mismatch.yml:5"
         ) in str(excinfo.value.messages)
+
+    def test_accept_polymorphic_types(self):
+        acspec = Yspec.load(os.path.join(
+            package_root, "test_acspec", "fixtures", "yaml", "types.yml"
+        ))
+        assert issubclass(acspec.TypeModel, BaseModel)
+        assert issubclass(acspec.SimpleTypeModel, BaseModel)
+        assert issubclass(acspec.ListTypeModel, BaseModel)
+        assert issubclass(acspec.ModelTypeModel, BaseModel)
+
+        simple_type = acspec.TypeModel({
+            "type": {
+                "simple": "string"
+            }
+        })
+        simple_type.validate()
+
+        list_type = acspec.TypeModel({
+            "type": {
+                "list": {
+                    "simple": "string"
+                }
+            }
+        })
+        list_type.validate()
+
+        model_type = acspec.TypeModel({
+            "type": {
+                "model": "string"
+            }
+        })
+        model_type.validate()

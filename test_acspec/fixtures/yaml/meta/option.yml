@@ -1,0 +1,10 @@
+
+name:
+  type:
+    simple: string
+# value:
+#   type:
+#     list: base
+value:
+  type:
+    simple: string

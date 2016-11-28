@@ -1,0 +1,8 @@
+
+name:
+  type:
+    simple: string
+constraints:
+  type:
+    list:
+      model: constraint

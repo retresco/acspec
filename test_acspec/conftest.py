@@ -3,6 +3,12 @@ import pytest
 
 
 @pytest.fixture()
+def acspec(request):
+    from acspec.base import Acspec
+    return Acspec(blog_specs(request))
+
+
+@pytest.fixture()
 def basic_specs(request):
     return {
         "basic": {
@@ -80,12 +86,6 @@ def blog_specs(request):
 
 
 @pytest.fixture()
-def acspec(request):
-    from acspec.base import Acspec
-    return Acspec(blog_specs(request))
-
-
-@pytest.fixture()
 def author_data(request):
     return {
         "id": "1",
@@ -102,4 +102,54 @@ def post_data(request):
         "text": "TestText",
         "tags": ["test", "blog"],
         "author": author_data(request)
+    }
+
+
+@pytest.fixture()
+def polymorphic_contact_specs(request):
+    return {
+        "address": {
+            "street_and_number": {
+                "type": {
+                    "simple": "string"
+                }
+            },
+            "city": {
+                "type": {
+                    "simple": "string"
+                }
+            },
+        },
+        "email": {
+            "email": {
+                "type": {
+                    "simple": "email"
+                }
+            }
+        },
+        "telephone": {
+            "telephone": {
+                "type": {
+                    "simple": "string"
+                }
+            },
+            "area_code": {
+                "type": {
+                    "simple": "string"
+                }
+            }
+        },
+        "contact": {
+            "preferred": {
+                "type": {
+                    "polymorphic": {
+                        "mapping": {
+                            "city,street_and_number": "address",
+                            "email": "email",
+                            "telephone": "telephone",
+                        }
+                    }
+                }
+            }
+        }
     }

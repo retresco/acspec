@@ -1,0 +1,26 @@
+# ModelName
+type:
+  # Attribute
+  type:
+    # Type
+    type: &polymorphic
+      polymorphic:
+        mapping:
+          simple: simple_type
+          list: list_type
+          model: model_type
+
+simple_type:
+  simple:
+    type:
+      simple: string
+
+list_type:
+  list:
+    type:
+      <<: *polymorphic
+
+model_type:
+  model:
+    type:
+      simple: string

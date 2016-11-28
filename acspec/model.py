@@ -8,6 +8,7 @@ from schematics.types import StringType, BooleanType, BaseType, IntType
 from schematics.types import FloatType, LongType, DateType, DateTimeType
 from schematics.types import EmailType, URLType
 from schematics.types.compound import ListType, DictType, ModelType
+from schematics.types.compound import PolyModelType
 from schematics.exceptions import ValidationError
 
 from acspec.dsl import iterspec, get_option, has_option
@@ -31,6 +32,7 @@ TO_SCHEMATICS_TYPE = {
     "list": ListType,
     "long": LongType,
     "model": ModelType,
+    "polymorphic": PolyModelType,
     "string": StringType,
     "timestamp": DateType,
     "url": URLType
@@ -92,7 +94,7 @@ class DontSerializeWhenNoneModel(BaseModel):
         serialize_when_none = False
 
 
-TYPE_KEYS = frozenset(["simple", "model", "list", "dict"])
+TYPE_KEYS = frozenset(["simple", "model", "list", "dict", "polymorphic"])
 
 
 def _type_keys_message(type_keys, data):
@@ -114,11 +116,55 @@ def _type_keys_message(type_keys, data):
     return r
 
 
+class PolymorphicTypeInfo(BaseModel):
+
+    mapping = DictType(StringType)
+
+    def schematics_field_descriptor(
+        self, context=None, nested=False, **kwargs
+    ):
+        if context is None:
+            raise AcspecContextError(
+                "No context provided to resolve polymorphic models"
+            )
+        else:
+            polymorphic_mapping = []
+            for k, v in iteritems(self.mapping):
+                model_class = context.get_model_class(v)
+                # if model_class is None and v in TO_SCHEMATICS_TYPE:
+                #     polymorphic_mapping[k] = TO_SCHEMATICS_TYPE[v]
+                # el
+                if model_class is None:
+                    raise AcspecContextError(
+                        "Model '{}' not found".format(k)
+                    )
+                polymorphic_mapping.append((k, model_class))
+
+            polymorphic_mapping = sorted(
+                polymorphic_mapping, key=lambda x: -x[0].count(",")
+            )
+            return TO_SCHEMATICS_TYPE["polymorphic"](
+                [x[1] for x in polymorphic_mapping],
+                claim_function=self._get_claim_function(polymorphic_mapping),
+                **kwargs
+            )
+
+    def _get_claim_function(self, polymorphic_mapping):
+        def claim_function(descriptor, data):
+            for key, model_class in polymorphic_mapping:
+                keys = set(key.split(","))
+                if keys.issubset(data.keys()):
+                    return model_class
+            return None
+        return claim_function
+
+
 class TypeInfo(BaseModel):
     simple = StringType(
         choices=list(TO_SCHEMATICS_TYPE.keys()), serialize_when_none=False
     )
     model = StringType(serialize_when_none=False)
+    polymorphic = ModelType(PolymorphicTypeInfo, serialize_when_none=False)
 
     def convert(self, raw_data, **kw):
         if hasattr(raw_data, "node_info"):
@@ -154,6 +200,8 @@ class TypeInfo(BaseModel):
         info_type = self.type()
         if info_type == "model":
             return True
+        elif info_type == "polymorphic":
+            return True
         elif info_type in ["dict", "list"]:
             return self[info_type].requires_context()
         else:
@@ -186,6 +234,10 @@ class TypeInfo(BaseModel):
                     model_class,
                     **kwargs
                 )
+        elif info_type == "polymorphic":
+            return self.polymorphic.schematics_field_descriptor(
+                context=context, nested=nested, **kwargs
+            )
         else:
             raise TypeError('Unknown field type {}'.format(info_type))
 
@@ -241,7 +293,7 @@ class MetaFieldDescriptor(BaseModel):
         }
 
 
-class ResolveableModel(object):
+class Resolvable(object):
 
     def __init__(self, model_class, contextual_field_descriptors):
         self.model_class = model_class
@@ -249,7 +301,9 @@ class ResolveableModel(object):
         self.resolved = False
 
     def resolve(self, context):
-        for name, field_descriptor in iteritems(self.contextual_field_descriptors):
+        for name, field_descriptor in iteritems(
+            self.contextual_field_descriptors
+        ):
             self.model_class.append_field(
                 name,
                 field_descriptor.schematics_field_descriptor(context=context)
@@ -286,7 +340,7 @@ class ResolvableFactory(object):
                     field_descriptor.schematics_field_descriptor()
                 )
 
-        return ResolveableModel(model_class, contextual_field_descriptors)
+        return Resolvable(model_class, contextual_field_descriptors)
 
     def _find_base_classes(self, name, spec):
         r = []

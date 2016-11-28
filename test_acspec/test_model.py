@@ -52,3 +52,50 @@ class TestModel(object):
         blog_specs['post'][':name'] = "SuperPostModel"
         acspec = Acspec(blog_specs)
         assert issubclass(acspec.SuperPostModel, BaseModel)
+
+    def test_should_initialize_polymorphic_models(
+        self, polymorphic_contact_specs
+    ):
+        acspec = Acspec(polymorphic_contact_specs)
+
+        model = acspec.ContactModel({
+            "preferred": {
+                "street_and_number": "Green Mountain Street 44",
+                "city": "Berlin"
+            }
+        })
+        model.validate()
+        model = acspec.ContactModel({
+            "preferred": {
+                "email": "person@his.domain.de"
+            }
+        })
+        model.validate()
+        model = acspec.ContactModel({
+            "preferred": {
+                "telephone": "030123456"
+            }
+        })
+        model.validate()
+
+    def test_should_not_accept_multiple_models(
+        self, polymorphic_contact_specs
+    ):
+        acspec = Acspec(polymorphic_contact_specs)
+
+        with pytest.raises(
+            schematics.exceptions.ModelConversionError
+        ) as excinfo:
+            acspec.ContactModel({
+                "preferred": {
+                    "street_and_number": "Green Mountain Street 44",
+                    "city": "Berlin",
+                    "email": "person@his.domain.de"
+                }
+            })
+        # longer matches 'city,street_and_number' have prevalence
+        assert excinfo.value.messages == {
+            'preferred': {
+                'email': 'Rogue field'
+            }
+        }

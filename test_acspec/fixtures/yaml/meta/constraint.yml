@@ -1,0 +1,7 @@
+
+name:
+  type:
+    simple: string
+type:
+  type:
+    model: type

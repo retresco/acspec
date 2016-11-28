@@ -51,8 +51,8 @@ There are 4 kinds of types, specified by the key of the type dict:
 "model": ModelType
 "list": ListType
 "dict": DictType
+"polymorphic": PolyModelType
 ```
-
 
 #### Implied model name
 
@@ -169,6 +169,34 @@ my_todo_list = models.TodoListModel({
     ]
 })
 ```
+
+#### Polymorphic types
+
+For polymorphic, you have to provide a key based mapping:
+
+
+```python
+from acspec.base import Acspec
+models = Acspec({
+    "contact": {
+        "preferred": {
+            "type": {
+                "polymorphic": {
+                    "mapping": {
+                        "city,street_and_number": "address",
+                        "email": "email",
+                        "telephone": "telephone",
+                    }
+                }
+            }
+        }
+    },
+    [...]  # address, email and telephone models
+})
+```
+
+Mappings with more keys have higher priority.
+
 
 #### Update sysmodule and import your models
 
