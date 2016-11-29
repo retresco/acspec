@@ -1,11 +1,15 @@
 from builtins import str
 
+import yaml
+
 from yaml.composer import Composer
 from yaml.reader import Reader
 from yaml.scanner import Scanner
 from yaml.resolver import Resolver
 from yaml.parser import Parser
 from yaml.constructor import SafeConstructor
+
+# load with filename and line numbers
 
 
 def NodeFactory(base_class):
@@ -78,3 +82,41 @@ class NodeLoader(Reader, Scanner, Parser, Composer, NodeConstructor, Resolver):
 
 def load_with_node_infos(stream):
     return NodeLoader(stream).get_single_data()
+
+
+# pretty print
+
+
+class PrettyDumper(yaml.dumper.Dumper):
+
+    def ignore_aliases(self, _data):
+        return True
+
+
+def str_node_representer(dumper, str_node):
+    node = yaml.ScalarNode(tag=u'tag:yaml.org,2002:str', value=str(str_node))
+    return node
+
+
+def dict_node_representer(dumper, dict_node):
+    items = dict_node.items()
+    items = sorted(items, key=lambda x: x[0])
+    return dumper.represent_mapping('tag:yaml.org,2002:map', items)
+
+
+def list_node_representer(dumper, list_node):
+    items = sorted(list_node)
+    return dumper.represent_mapping('tag:yaml.org,2002:seq', items)
+
+
+PrettyDumper.add_representer(str_node, str_node_representer)
+PrettyDumper.add_representer(list_node, list_node_representer)
+PrettyDumper.add_representer(list, list_node_representer)
+PrettyDumper.add_representer(dict_node, dict_node_representer)
+PrettyDumper.add_representer(dict, dict_node_representer)
+
+
+def pretty_print_with_node_infos(data):
+    return yaml.dump(
+        data, Dumper=PrettyDumper, default_flow_style=False
+    )

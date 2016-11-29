@@ -249,7 +249,9 @@ class ResolveableModel(object):
         self.resolved = False
 
     def resolve(self, context):
-        for name, field_descriptor in iteritems(self.contextual_field_descriptors):
+        for name, field_descriptor in iteritems(
+            self.contextual_field_descriptors
+        ):
             self.model_class.append_field(
                 name,
                 field_descriptor.schematics_field_descriptor(context=context)

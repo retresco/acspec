@@ -26,7 +26,9 @@ class Acspec(object):
         if class_mapping:
             self._class_mapping.update(class_mapping)
 
-        self._resolvable_factory = resolvable_factory(class_mapping=self._class_mapping)
+        self._resolvable_factory = resolvable_factory(
+            class_mapping=self._class_mapping
+        )
         self._raw_specs = {}
         self._models = {}
         self._model_suffix = model_suffix
@@ -45,6 +47,9 @@ class Acspec(object):
 
         for name, spec in iterspec(specs):
             self.add_spec(name, spec)
+
+    def get_resolvable(self, name):
+        return self._models[name]
 
     def get_model_class(self, name):
         if name in self._models:
