@@ -180,7 +180,7 @@ class TypeInfo(BaseModel):
                 model_class = context.get_model_class(self.model)
                 if model_class is None:
                     raise AcspecContextError(
-                        "Model '{}' not found".format(model_class)
+                        "Model '{}' not found".format(self.model)
                     )
                 return TO_SCHEMATICS_TYPE[self.type()](
                     model_class,
