@@ -1,5 +1,3 @@
-import errno
-import os
 import re
 import keyword
 from six import iteritems
@@ -67,16 +65,6 @@ def camelize(s):
     # camelize with lower first character
     # return re.sub(r'(?!^)_(.)', lambda m: m.group(1).upper(), s)
     return re.sub(r"(?:^|_)(.)", lambda m: m.group(1).upper(), s)
-
-
-def mkdir_p(path):
-    try:
-        os.makedirs(path)
-    except OSError as exc:
-        if exc.errno == errno.EEXIST and os.path.isdir(path):
-            pass
-        else:
-            raise
 
 
 def is_valid_identifier(name):

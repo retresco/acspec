@@ -1,7 +1,7 @@
 # Define schematics models by dicts and YAML
 
 Acspec (active spec) allows you to specify your schematics models with python
-dicts or yaml files.
+dicts or YAML files.
 
 
 ## Basic example:
@@ -227,12 +227,16 @@ acspec.TestModel.get_identifier = get_identifier
 #### extract_specs
 
 Provide a Python module (must be importable) as parameter and the script will try
-to transform the contained Schematics models to acspec yaml files.
+to transform the contained Schematics models to acspec YAML files.
 
-Example usage:
+Usage:
 
-    env/bin/extract_specs models.messages -d models/messages/
-    # will create a yaml acspec file for every model found in the module
+    env/bin/extract_specs some.module.name
+    # will output the specs as YAML. Use -d option for output directory
+
+Example:
+
+    env/bin/extract_specs test_acspec.extract.conftest -d tmp/models
 
 
 ## Developing
