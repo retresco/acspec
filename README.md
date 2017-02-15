@@ -121,7 +121,7 @@ acspec = Acspec(
         ":bases": ["base"]
         # your attributes
     }
-})
+}, class_mapping=class_mapping)
 
 assert issubclass(acspec.TestModel, CustomModel)
 ```
