@@ -11,6 +11,7 @@ from schematics.types.compound import ListType, DictType, ModelType
 from schematics.exceptions import ValidationError
 
 from acspec.dsl import iterspec, get_option, has_option
+from acspec.exceptions import AcspecContextError, MissingBaseClassMappingError
 
 # [
 #     'UUIDType', 'IntType', 'EmailType', 'BooleanType', 'DateType',
@@ -40,18 +41,6 @@ TO_ACSPEC_TYPE = {
     v: k
     for k, v in iteritems(TO_SCHEMATICS_TYPE)
 }
-
-
-class AcspecContextError(Exception):
-    pass
-
-
-class UnresolvedModelError(Exception):
-    pass
-
-
-class MissingBaseClassMappingError(Exception):
-    pass
 
 
 class BaseModel(SchematicsModel):
