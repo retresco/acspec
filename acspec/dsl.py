@@ -3,6 +3,17 @@ from six import iteritems
 OPTIONS_CHARACTER = ":"
 
 
+def is_option(name):
+    return name.startswith(OPTIONS_CHARACTER)
+
+
+def remove_option_prefix(name):
+    if is_option(name):
+        return name[len(OPTIONS_CHARACTER):]
+    else:
+        return name
+
+
 def has_option(spec, name):
     return (OPTIONS_CHARACTER + name) in spec
 
@@ -19,8 +30,14 @@ def add_option(spec, name, value):
     spec[OPTIONS_CHARACTER + name] = value
 
 
-def iterspec(spec):
+def iterspec(spec, with_options=False):
     for k, v in iteritems(spec):
-        if k.startswith(OPTIONS_CHARACTER):
+        if is_option(k):
+            if with_options:
+                yield k, v, True
             continue
-        yield k, v
+
+        if with_options:
+            yield k, v, False
+        else:
+            yield k, v

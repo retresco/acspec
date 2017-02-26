@@ -3,9 +3,8 @@ import schematics
 from schematics.types import StringType
 
 from acspec.base import Acspec
-from acspec.model import (
-    BaseModel, SchematicsModel, MissingBaseClassMappingError
-)
+from acspec.exceptions import MissingBaseClassMappingError
+from acspec.model import BaseModel, SchematicsModel
 
 
 class CustomModel(SchematicsModel):

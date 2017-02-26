@@ -62,7 +62,25 @@ E.g. blog_post => BlogPostModel
 
 You can override the suffix with the model_suffix option.
 
-#### Options
+
+#### Schematics options and validations
+
+You can use the schematics options and validations in your specs:
+
+```python
+acspec = Acspec({"todo": {
+    "title":{
+        "type": {
+            "simple": "string"
+        },
+        "max_length": 20,
+        "min_length": 3,
+    }
+}})
+```
+
+
+#### Other options
 
 Meta information can be specified with the ":"-prefix, e.g. override the
 model's name like this:
@@ -79,6 +97,7 @@ acspec = Acspec({"todo": {
 
 acspec.MyTodoModel
 ```
+
 
 #### Inheritance
 
@@ -170,6 +189,7 @@ my_todo_list = models.TodoListModel({
 })
 ```
 
+
 #### Update sysmodule and import your models
 
 ```python
@@ -219,6 +239,48 @@ def get_identifier(self):
     return self.id
 
 acspec.TestModel.get_identifier = get_identifier
+```
+
+
+#### Custom DSLs
+
+You may have custom options and handling for your specs and require an
+extended input format. The simplest way to achieve this is to provide a
+type descriptor mixin with your additional fields or overrides:
+
+```python
+
+class MyMixinMixin(Model):
+
+    other_field = StringType()
+
+    @property
+    def non_kwarg_keys(self):
+        return super().non_kwarg_keys | {"other_field"}
+
+    def init_schematics_type(self, context=None):
+        # extend or customize the schematics field descriptor
+        # ...
+
+
+custom_model_builder = SchematicsModelBuilder(
+    type_descriptor_mixin=EsDescriptorMixin
+)
+
+
+models = Acspec(
+    {
+        "todo": {
+            "title":{
+                "type": {
+                    "simple": "string"
+                },
+                "other_field": "other_value"
+            }
+        }
+    },
+    model_builder=custom_model_builder
+)
 ```
 
 

@@ -11,5 +11,4 @@ last_name:
 birthday:
   type:
     simple: date_time
-  formats: ["%Y-%m-%d"]
   serialized_format: "%Y-%m-%dT%H:%M:%SZ"

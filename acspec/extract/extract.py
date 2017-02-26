@@ -3,9 +3,11 @@ import inspect
 
 from six import iteritems
 from schematics.models import Model
-from acspec.model import MetaFieldDescriptor, TO_ACSPEC_TYPE
 from acspec.utils import underscore
 from acspec.dsl import add_option
+from acspec.schematics_builder.types.aggregate import (
+    ALL_VALID_DISCRIPTOR_OPTIONS, TO_ACSPEC_TYPE
+)
 
 
 def find_model_classes(module):
@@ -90,7 +92,7 @@ def _extract_spec(field_name, field_descriptor):
         "type": _get_acspec_type(field_descriptor)
     }
 
-    for attr in MetaFieldDescriptor._fields:
+    for attr in ALL_VALID_DISCRIPTOR_OPTIONS:
         if attr == "messages":
             continue
 

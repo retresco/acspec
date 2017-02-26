@@ -3,10 +3,10 @@ from types import ModuleType
 
 from six import iteritems
 from acspec.exceptions import UnresolvedModelError
-from acspec.model import ResolvableFactory
-from acspec.model import DEFAULT_MAPPINGS
 from acspec.utils import camelize, is_valid_identifier, topological_iteritems
 from acspec.dsl import has_option, get_option, iterspec
+
+from acspec.schematics_builder.builder import SchematicsModelBuilder
 
 
 class Acspec(object):
@@ -14,7 +14,7 @@ class Acspec(object):
     __is_frozen = False
 
     def __init__(
-        self, specs=None, resolvable_factory=ResolvableFactory,
+        self, specs=None, model_builder=None,
         finalize=True, class_mapping=None,
         model_suffix=None
     ):
@@ -23,19 +23,22 @@ class Acspec(object):
         if model_suffix is None:
             model_suffix = "Model"
 
-        self._class_mapping = DEFAULT_MAPPINGS.copy()
-        if class_mapping:
-            self._class_mapping.update(class_mapping)
+        if model_builder is None:
+            model_builder = SchematicsModelBuilder(
+                class_mapping=class_mapping
+            )
 
-        self._resolvable_factory = resolvable_factory(
-            class_mapping=self._class_mapping
-        )
+        self._model_builder = model_builder
         self._raw_specs = {}
         self._models = {}
         self._model_suffix = model_suffix
         self.add_specs(specs)
         if finalize:
             self.finalize()
+
+    @property
+    def class_mapping(self):
+        return self._model_builder.class_mapping
 
     def add_spec(self, name, spec):
         if not is_valid_identifier(name):
@@ -49,47 +52,36 @@ class Acspec(object):
         for name, spec in iterspec(specs):
             self.add_spec(name, spec)
 
-    def get_resolvable(self, name):
-        return self._models[name]
-
     def get_model_class(self, name):
         if name in self._models:
             return self._models[name].model_class
-        elif name in self._class_mapping:
-            return self._class_mapping[name]
+        elif name in self.class_mapping:
+            return self.class_mapping[name]
         # raise AcspecContextError(
         #     "Model '{}' not found".format(model_class)
         # )
 
-    def _resolve_classes(self):
-        pre_emitted = self._get_known_bases()
+    def _build_resolvables(self):
+        pre_emitted = self._model_builder.get_already_defined_bases()
         for name, spec in topological_iteritems(
             self._raw_specs, pre_emitted=pre_emitted
         ):
             if name in self._models:
                 # TODO can classes change, should we compare/raise?
                 continue
-            model_name = self._get_model_name(name, spec=spec)
-            self._models[name] = self._resolvable_factory.get_resolvable(
-                model_name, spec
+            self._models[name] = self._model_builder.build_resolveable(
+                name, spec
             )
-            if name not in self._class_mapping:
-                # inform over replacing mapping
-                # or append these mappings instead of replacing?
-                self._class_mapping[name] = self._models[name].model_class
-
-    def _get_known_bases(self):
-        return list(self._class_mapping.keys())
 
     def _resolve_references(self):
         for model_name, v in iteritems(self._models):
-            v.resolve(self)
-            setattr(self, v.model_class.__name__, v.model_class)
+            model_class = self._model_builder.resolve_references(v, self)
+            setattr(self, model_class.__name__, model_class)
 
     def finalize(self, freeze=True):
         self._validate_not_frozen()
 
-        self._resolve_classes()
+        self._build_resolvables()
         self._resolve_references()
 
         if freeze:

@@ -14,13 +14,15 @@ class TestModel(object):
         blog_specs['blog']['posts']['type']['simple'] = 'string'
 
         with pytest.raises(
-            schematics.exceptions.ModelValidationError
+            # schematics.exceptions.ModelValidationError
+            schematics.exceptions.ModelConversionError
+
         ) as excinfo:
             Acspec(blog_specs)
 
         assert excinfo.value.messages == {
-            'type': {'dict': [
-                "Cannot have multiple types: list, simple"
+            'field_descriptors': {'posts': [
+                'Cannot have multiple types: list, simple'
             ]}
         }
 

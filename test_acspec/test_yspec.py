@@ -33,7 +33,6 @@ class TestYspec(object):
 
         assert author.birthday == birthday
 
-        # the format "%Y-%m-%d" strips time information
         author = acspec.AuthorModel({
             "first_name": "Hans",
             "last_name": "Schmidt",
@@ -41,7 +40,7 @@ class TestYspec(object):
         })
         assert author.birthday == birthday
         assert author.to_primitive()['birthday'] == \
-            '1983-06-04T00:00:00.000000'
+            '1983-06-04T00:00:00Z'
 
         with pytest.raises(
             schematics.exceptions.ModelConversionError
@@ -93,7 +92,7 @@ class TestYspec(object):
             package_root, "test_acspec", "fixtures", "yaml", "invalid"
         )
         with pytest.raises(
-            schematics.exceptions.ModelValidationError
+            schematics.exceptions.ModelConversionError
         ) as excinfo:
             Yspec.load(file_path)
 
