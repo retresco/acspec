@@ -250,7 +250,7 @@ type descriptor mixin with your additional fields or overrides:
 
 ```python
 
-class MyMixinMixin(Model):
+class MyTypeDescriptorMixin(Model):
 
     other_field = StringType()
 
@@ -259,12 +259,17 @@ class MyMixinMixin(Model):
         return super().non_kwarg_keys | {"other_field"}
 
     def init_schematics_type(self, context=None):
+        type_class = super(MyTypeDescriptorMixin, self).init_schematics_type(
+            context=context
+        )
         # extend or customize the schematics field descriptor
         # ...
+        return type_class
 
 
-custom_model_builder = SchematicsModelBuilder(
-    type_descriptor_mixin=EsDescriptorMixin
+# Make it strict: raise when encounter an unknown key / rogue field
+MyDescriptionClass = build_description_class(
+  type_descriptor_mixin=MyTypeDescriptorMixin, strict=True
 )
 
 
@@ -279,9 +284,14 @@ models = Acspec(
             }
         }
     },
-    model_builder=custom_model_builder
+    SchematicsModelBuilder(
+        description_class=MyDescriptionClass
+    )
 )
 ```
+
+Note: Composing the description class is a complex operation. Bear in mind
+to initialize your custom description only once.
 
 
 ## Scripts

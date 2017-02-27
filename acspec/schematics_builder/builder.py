@@ -2,9 +2,17 @@ from acspec.dsl import iterspec, remove_option_prefix
 
 from acspec.utils import camelize
 
-from acspec.model import DEFAULT_MAPPINGS
+from acspec.model import DontSerializeWhenNoneModel
 from acspec.schematics_builder.description import build_description_class
 from acspec.schematics_builder.types.aggregate import ALL_DESCRIPTORS
+
+DEFAULT_DESCRIPTION = build_description_class(
+    type_descriptors=ALL_DESCRIPTORS
+)
+
+DEFAULT_MAPPING = {
+    "dont_serialize_when_none": DontSerializeWhenNoneModel
+}
 
 
 class ResolveableModel(object):
@@ -28,19 +36,18 @@ class SchematicsModelBuilder():
 
     def __init__(
         self,
-        class_mapping=None,
         model_suffix="Model",
-        type_descriptors=ALL_DESCRIPTORS,
-        type_descriptor_mixin=None,
+        class_mapping=None,
+        description_class=None
     ):
-        self._class_mapping = DEFAULT_MAPPINGS.copy()
+        self._class_mapping = DEFAULT_MAPPING.copy()
         if class_mapping:
             self._class_mapping.update(class_mapping)
         self._model_suffix = model_suffix
 
-        self._description_class = build_description_class(
-            type_descriptors, type_descriptor_mixin=type_descriptor_mixin
-        )
+        if description_class is None:
+            description_class = DEFAULT_DESCRIPTION
+        self._description_class = description_class
 
     @property
     def class_mapping(self):

@@ -10,16 +10,17 @@ from acspec.exceptions import MissingBaseClassMappingError
 from acspec.model import BaseModel
 from acspec.schematics_builder.fixes import DictType
 from acspec.schematics_builder.types.descriptor import PolyTypeDescriptor
+from acspec.schematics_builder.types.aggregate import ALL_DESCRIPTORS
 
 
 def build_description_class(
-    type_descriptors, type_descriptor_mixin=None, strict=False
+    type_descriptors=ALL_DESCRIPTORS, type_descriptor_mixin=None, strict=False
 ):
 
     class CustomSchematicsModelDescription(SchematicsModelDescription):
 
         field_descriptors = DictType(PolyTypeDescriptor(
-            type_descriptors=type_descriptors,
+            type_descriptors,
             type_descriptor_mixin=type_descriptor_mixin,
             strict=strict
         ))
@@ -38,7 +39,7 @@ class ModelOptions(Model):
 class SchematicsModelDescription(Model):
 
     options = ModelType(ModelOptions)
-    field_descriptors = DictType(PolyTypeDescriptor(strict=False))
+    field_descriptors = DictType(PolyTypeDescriptor([], strict=False))
 
     def __init__(self, *args, **kwargs):
         self.base_model = kwargs.pop("base_model", BaseModel)

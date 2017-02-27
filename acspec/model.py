@@ -41,8 +41,3 @@ class DontSerializeWhenNoneModel(BaseModel):
 
     class Options:
         serialize_when_none = False
-
-
-DEFAULT_MAPPINGS = {
-    "dont_serialize_when_none": DontSerializeWhenNoneModel
-}

@@ -133,7 +133,7 @@ class BasePolyTypeDescriptor(PolyModelType):
 
 class PolyTypeDescriptor(BasePolyTypeDescriptor):
 
-    def __init__(self, type_descriptors=ALL_DESCRIPTORS, **kwargs):
+    def __init__(self, type_descriptors, **kwargs):
         super(PolyTypeDescriptor, self).__init__(
             type_descriptors, **kwargs
         )
