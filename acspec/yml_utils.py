@@ -23,10 +23,10 @@ def NodeFactory(base_class):
             if base_class != str:
                 super(NodeBase, self).__init__(*args, **kwargs)
 
-        def __new__(cls, x, *args, **kwargs):
+        def __new__(cls, *args, **kwargs):
             if "node_info" in kwargs:
                 del kwargs["node_info"]
-            return base_class.__new__(cls, x, *args, **kwargs)
+            return base_class.__new__(cls, *args, **kwargs)
 
     name = '{}_node'.format(base_class.__name__)
     node_class = type(name, (NodeBase,), {})

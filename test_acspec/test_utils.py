@@ -53,3 +53,18 @@ def test_is_valid_identifier():
     assert utils.is_valid_identifier("test-model") is False
     assert utils.is_valid_identifier("test_model") is True
     assert utils.is_valid_identifier("TestModel") is True
+
+
+def test_sanitize_identifier():
+    assert utils.sanitize_identifier("test-model") == "test_model"
+    assert utils.sanitize_identifier("0test") == "_0test"
+    assert utils.sanitize_identifier(")(&$test") == "test"
+    assert utils.sanitize_identifier("test\"\'") == "test"
+    assert utils.sanitize_identifier("test-$-test") == "test_test"
+
+
+def test_sanitize_identifier_raises_value_error():
+    with pytest.raises(ValueError) as excinfo:
+        utils.sanitize_identifier("$=(_)") == "test_model"
+
+    assert str(excinfo.value) == "Cannot transform '$=(_)' to valid identifier"

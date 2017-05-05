@@ -3,7 +3,10 @@ from types import ModuleType
 
 from six import iteritems
 from acspec.exceptions import UnresolvedModelError
-from acspec.utils import camelize, is_valid_identifier, topological_iteritems
+from acspec.utils import (
+    camelize, is_valid_identifier, sanitize_identifier,
+    topological_iteritems
+)
 from acspec.dsl import has_option, get_option, iterspec
 
 from acspec.schematics_builder.builder import SchematicsModelBuilder
@@ -16,8 +19,10 @@ class Acspec(object):
     def __init__(
         self, specs=None, model_builder=None,
         finalize=True, class_mapping=None,
-        model_suffix=None
+        model_suffix=None, on_invalid_identifier="sanitize"
     ):
+        assert on_invalid_identifier in ["sanitize", "skip", "raise"]
+
         if specs is None:
             specs = {}
         if model_suffix is None:
@@ -32,6 +37,7 @@ class Acspec(object):
         self._raw_specs = {}
         self._models = {}
         self._model_suffix = model_suffix
+        self._on_invalid_identifier = on_invalid_identifier
         self.add_specs(specs)
         if finalize:
             self.finalize()
@@ -41,8 +47,10 @@ class Acspec(object):
         return self._model_builder.class_mapping
 
     def add_spec(self, name, spec):
-        if not is_valid_identifier(name):
+        name = self._get_valid_identifier(name)
+        if not name:
             return
+
         self._validate_not_frozen()
         self._raw_specs[name] = spec
 
@@ -60,23 +68,6 @@ class Acspec(object):
         # raise AcspecContextError(
         #     "Model '{}' not found".format(model_class)
         # )
-
-    def _build_resolvables(self):
-        pre_emitted = self._model_builder.get_already_defined_bases()
-        for name, spec in topological_iteritems(
-            self._raw_specs, pre_emitted=pre_emitted
-        ):
-            if name in self._models:
-                # TODO can classes change, should we compare/raise?
-                continue
-            self._models[name] = self._model_builder.build_resolveable(
-                name, spec
-            )
-
-    def _resolve_references(self):
-        for model_name, v in iteritems(self._models):
-            model_class = self._model_builder.resolve_references(v, self)
-            setattr(self, model_class.__name__, model_class)
 
     def finalize(self, freeze=True):
         self._validate_not_frozen()
@@ -104,6 +95,36 @@ class Acspec(object):
         for model_class in self.itermodelclasses():
             setattr(ctx, model_class.__name__, model_class)
         sys.modules[name] = ctx
+
+    def _get_valid_identifier(self, name):
+        assert name, "Please provide a name for your specification"
+
+        if not is_valid_identifier(name):
+            if self._on_invalid_identifier == "raise":
+                raise ValueError("Invaliid identifier: {}".format(name))
+            elif self._on_invalid_identifier == "sanitize":
+                return sanitize_identifier(name)
+            else:
+                return False
+
+        return name
+
+    def _build_resolvables(self):
+        pre_emitted = self._model_builder.get_already_defined_bases()
+        for name, spec in topological_iteritems(
+            self._raw_specs, pre_emitted=pre_emitted
+        ):
+            if name in self._models:
+                # TODO can classes change, should we compare/raise?
+                continue
+            self._models[name] = self._model_builder.build_resolveable(
+                name, spec
+            )
+
+    def _resolve_references(self):
+        for model_name, v in iteritems(self._models):
+            model_class = self._model_builder.resolve_references(v, self)
+            setattr(self, model_class.__name__, model_class)
 
     def _get_model_name(self, name, spec=None):
         if spec and has_option(spec, "name"):

@@ -63,7 +63,6 @@ def underscore(name):
 
 def camelize(s):
     # camelize with lower first character
-    # return re.sub(r'(?!^)_(.)', lambda m: m.group(1).upper(), s)
     return re.sub(r"(?:^|_)(.)", lambda m: m.group(1).upper(), s)
 
 
@@ -73,3 +72,23 @@ def is_valid_identifier(name):
     return re.match(
         "[_A-Za-z][_a-zA-Z0-9]*$", name
     ) is not None and not keyword.iskeyword(name)
+
+
+def sanitize_identifier(original_name):
+    # remove leading and trailing invalid characters
+    name = re.sub('(^[^0-9a-zA-Z_]+|[^0-9a-zA-Z_]+$)', '', original_name)
+
+    # Replace invalid characters by underscore and squeeze
+    name = re.sub('[^0-9a-zA-Z_]', '_', name)
+    name = re.sub('_+', '_', name)
+
+    if not name or name.count("_") == len(name):
+        raise ValueError(
+            "Cannot transform '{}' to valid identifier".format(original_name)
+        )
+
+    # append _ for digits
+    if name[0].isdigit():
+        name = "_{}".format(name)
+
+    return name

@@ -1,6 +1,6 @@
 # Define schematics models by dicts and YAML
 
-Acspec (active spec) allows you to specify your schematics models with python
+Acspec allows you to specify your schematics models with python
 dicts or YAML files.
 
 
@@ -61,6 +61,10 @@ to the camelized version plus the "Model"-suffix.
 E.g. blog_post => BlogPostModel
 
 You can override the suffix with the model_suffix option.
+
+Model names should be valid python identifiers. If not, they will be sanitized
+by default. You can customize this behavior by setting the
+`on_invalid_identifier` option to `skip` or `raise`.
 
 
 #### Schematics options and validations

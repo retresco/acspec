@@ -95,6 +95,30 @@ class TestAcspec(object):
             "test_scope": "test_content"
         }
 
+    def test_should_sanitize_model_name(self, invalid_model_name_specs):
+        acspec = Acspec(invalid_model_name_specs)
+        assert "to_be_sanitized" in acspec._raw_specs
+
+        model = acspec.ToBeSanitizedModel({
+            "field": "test"
+        })
+        model.validate()
+
+    def test_should_skip_invalid_model_name(self, invalid_model_name_specs):
+        acspec = Acspec(invalid_model_name_specs, on_invalid_identifier="skip")
+        assert "to_be_sanitized" not in acspec._raw_specs
+
+    def test_should_raise_on_invalid_model_name(
+        self, invalid_model_name_specs
+    ):
+        with pytest.raises(ValueError) as excinfo:
+            Acspec(
+                invalid_model_name_specs,
+                on_invalid_identifier="raise"
+            )
+
+        assert str(excinfo.value) == "Invaliid identifier: $%&to-be-sanitized"
+
     def test_should_raise_validation_error(
         self, acspec, post_data
     ):

@@ -16,6 +16,19 @@ def basic_specs(request):
 
 
 @pytest.fixture()
+def invalid_model_name_specs(request):
+    return {
+        "$%&to-be-sanitized": {
+            "field": {
+                "type": {
+                    "simple": "string"
+                }
+            }
+        }
+    }
+
+
+@pytest.fixture()
 def blog_specs(request):
     return {
         "blog": {
