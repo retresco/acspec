@@ -7,9 +7,7 @@ def basic_specs(request):
     return {
         "basic": {
             "field": {
-                "type": {
-                    "simple": "string"
-                }
+                "type": "string"
             }
         }
     }
@@ -20,9 +18,7 @@ def invalid_model_name_specs(request):
     return {
         "$%&to-be-sanitized": {
             "field": {
-                "type": {
-                    "simple": "string"
-                }
+                "type": "string"
             }
         }
     }
@@ -33,58 +29,43 @@ def blog_specs(request):
     return {
         "blog": {
             "posts": {
-                "type": {
-                    "list": {
-                        "model": "post"
-                    }
+                "list": {
+                    "type": "model",
+                    "model": "post"
                 }
             }
         },
         "author": {
             "id": {
-                "type": {
-                    "simple": "string"
-                }
+                "type": "string"
             },
             "first_name": {
-                "type": {
-                    "simple": "string"
-                }
+                "type": "string"
             },
             "last_name": {
-                "type": {
-                    "simple": "string"
-                }
+                "type": "string"
             }
         },
         "post": {
             "id": {
-                "type": {
-                    "simple": "string"
-                }
+                "type": "string"
             },
             "title": {
-                "type": {
-                    "simple": "string"
-                }
+                "type": "string"
             },
             "text": {
-                "type": {
-                    "simple": "string"
-                }
+                "type": "string"
             },
             "tags": {
-                "type": {
-                    "list": {
-                        "simple": "string"
-                    }
+                "type": "list",
+                "list": {
+                    "type": "string"
                 },
                 "serialize_when_none": False,
             },
             "author": {
-                "type": {
-                    "model": "author"
-                },
+                "type": "model",
+                "model": "author",
                 "serialize_when_none": False,
                 "required": True
             }

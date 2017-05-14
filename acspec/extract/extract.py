@@ -49,19 +49,22 @@ def get_short_name(name):
 def _get_acspec_type(field_descriptor):
     # TODO check subclasses?
     acspec_type_value = TO_ACSPEC_TYPE[field_descriptor.__class__]
-    key = "simple"
+
+    type_spec = {
+        "type": acspec_type_value
+    }
+
     if acspec_type_value in ["list", "dict", "model"]:
-        key = acspec_type_value
         if acspec_type_value == "model":
-            acspec_type_value = get_short_name(
+            type_spec[acspec_type_value] = get_short_name(
                 field_descriptor.model_class.__name__
             )
         else:
-            acspec_type_value = _get_acspec_type(field_descriptor.field)
+            type_spec[acspec_type_value] = _get_acspec_type(
+                field_descriptor.field
+            )
 
-    return {
-        key: acspec_type_value
-    }
+    return type_spec
 
 
 def _extract_spec_with_options(
@@ -88,9 +91,7 @@ def _extract_spec_with_options(
 
 
 def _extract_spec(field_name, field_descriptor):
-    spec = {
-        "type": _get_acspec_type(field_descriptor)
-    }
+    spec = _get_acspec_type(field_descriptor)
 
     for attr in ALL_VALID_DISCRIPTOR_OPTIONS:
         if attr == "messages":

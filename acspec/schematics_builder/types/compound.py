@@ -1,6 +1,7 @@
 
 from schematics.types import IntType
 from schematics.types.compound import ListType, ModelType
+from schematics.types import StringType
 
 from acspec.exceptions import AcspecContextError
 from acspec.schematics_builder.fixes import DictType
@@ -14,19 +15,28 @@ class CompoundTypeDescriptorBase(TypeDescriptorBase):
     def has_content_type(cls):
         return True
 
+    @classmethod
+    def get_compound_type_key(cls):
+        return cls.type_name
+
+    @classmethod
+    def get_compound_type(cls, nested_type):
+        return nested_type
+
+    @property
+    def non_kwarg_keys(self):
+        return super(
+            CompoundTypeDescriptorBase, self
+        ).non_kwarg_keys | {self.type_name}
+
     def init_schematics_type(self, context=None):
-        descriptor_class = self.schematics_type
         kwargs = self.get_descriptor_kwargs()
-        nested = self.get_nested_value().init_schematics_type(
-            context=context
-        )
-        return descriptor_class(nested, **kwargs)
+        nested = self.get_nested_value().init_schematics_type(context=context)
+
+        return self.schematics_type(nested, **kwargs)
 
     def get_nested_value(self):
-        base = getattr(self, "type", None)
-        if not base:
-            base = self
-        return base.get(self.type_name)
+        return self.get(self.get_compound_type_key())
 
     def get_requires_context(self):
         nested_value = self.get_nested_value()
@@ -42,6 +52,11 @@ class ContextTypeDescriptorBase(CompoundTypeDescriptorBase):
     @classmethod
     def has_content_type(cls):
         return False
+
+    @classmethod
+    def get_compound_type(cls, nested_type):
+        # default references are given as string
+        return StringType(required=True)
 
     def init_schematics_type(self, context=None):
         if context is None:
@@ -85,8 +100,6 @@ class ModelTypeDescriptorBase(ContextTypeDescriptorBase):
 
     type_name = "model"
     schematics_type = ModelType
-
-    requires_context = True
 
 
 COMPOUND_TYPE_DESCRIPTORS = [

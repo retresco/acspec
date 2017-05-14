@@ -18,6 +18,6 @@ for descriptor in ALL_DESCRIPTORS:
 
     for name in descriptor._fields:
 
-        if name not in ["type", "simple", "list", "dict", "model"]:
+        if name not in ["type", "list", "dict", "model"]:
             if name not in ALL_VALID_DISCRIPTOR_OPTIONS:
                 ALL_VALID_DISCRIPTOR_OPTIONS.append(name)

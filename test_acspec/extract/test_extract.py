@@ -5,7 +5,7 @@ def test_should_extract_spec(basic_model):
     spec = model_to_spec(basic_model)
 
     assert "field" in spec
-    assert spec["field"] == {'type': {'simple': 'string'}}
+    assert spec["field"] == {'type': 'string'}
 
 
 def test_should_extract_bases(sub_model):
@@ -27,7 +27,7 @@ def test_should_extract_inherited_fields_with_bases(sub_model):
     assert ":bases" in spec["field"]
     assert spec["field"][":bases"] == {'basic': 'implements'}
     assert "field" in spec
-    assert spec["field"]["type"] == {'simple': 'string'}
+    assert spec["field"]["type"] == 'string'
 
 
 def test_should_exted_inherited_fields_without_bases(sub_model):
@@ -35,7 +35,7 @@ def test_should_exted_inherited_fields_without_bases(sub_model):
 
     assert ":bases" not in spec["field"]
     assert "field" in spec
-    assert spec["field"] == {'type': {'simple': 'string'}}
+    assert spec["field"] == {'type': 'string'}
 
 
 def test_should_extract_overridden_fields(override_model):
@@ -46,7 +46,7 @@ def test_should_extract_overridden_fields(override_model):
         assert ":overrides" in spec["field"]
         assert spec["field"][":overrides"] == ['basic']
         assert "field" in spec
-        assert spec["field"]["type"] == {'simple': 'string'}
+        assert spec["field"]["type"] == 'string'
         assert spec["field"]["required"] is True
 
 
@@ -74,7 +74,7 @@ def test_should_extract_overridden_fields_with_overrides(override_model):
     assert ":overrides" not in spec["field"]
     assert "field" in spec
     assert spec["field"] == {
-        'type': {'simple': 'string'},
+        'type': 'string',
         'required': True
     }
     assert "other_field" in spec
@@ -104,4 +104,8 @@ def test_should_resolve_compond_types(blog_module):
 
     assert "posts" in spec
     assert "type" in spec["posts"]
-    assert spec["posts"]["type"] == {'list': {'model': 'post'}}
+    assert spec["posts"]["type"] == 'list'
+    assert spec["posts"]["list"] == {
+        'type': 'model',
+        'model': 'post',
+    }

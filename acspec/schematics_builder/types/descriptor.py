@@ -1,190 +1,119 @@
 
-from six import iteritems
+from six import iteritems, string_types
 
 from schematics.types import StringType
-from schematics.types.compound import PolyModelType, ModelType
+from schematics.types.compound import PolyModelType
 from schematics.exceptions import ValidationError
 
-from acspec.model import BaseModel
 from acspec.schematics_builder.types.compound import CompoundTypeDescriptorBase
-from acspec.schematics_builder.types.compound import ContextTypeDescriptorBase
-from acspec.schematics_builder.types.aggregate import ALL_DESCRIPTORS
 
 
-def find_descriptor(
-    data, type_keys={"simple", "list", "dict", "model"},
-    descriptors=ALL_DESCRIPTORS
-):
-    matched_type_keys = type_keys.intersection(data.keys())
-
-    if len(matched_type_keys) > 1:
-        msg = u'Cannot have multiple types: {}'.format(
-            _type_keys_message(matched_type_keys, data)
-        )
-
-        raise ValidationError(msg)
-    if not matched_type_keys or not any([t for t in matched_type_keys]):
-        msg = u'Missing one field of {}'.format(", ".join(type_keys))
-
-        raise ValidationError(
-            u'Missing one field of {}'.format(", ".join(type_keys))
-        )
-    type_name = matched_type_keys.pop()
-
-    if type_name == "simple":
-        type_name = data["simple"]
-
-    for model_class in descriptors:
-        if model_class.get_type_name() == type_name:
-            return model_class
-
-    raise ValidationError("Did not find type {}".format(type_name))
-
-
-class BasePolyTypeDescriptor(PolyModelType):
+class PolyTypeDescriptor(PolyModelType):
 
     def __init__(self, type_descriptors, type_descriptor_mixin=None, **kwargs):
         self._type_descriptor_mixin = type_descriptor_mixin
-        super(BasePolyTypeDescriptor, self).__init__(
+        super(PolyTypeDescriptor, self).__init__(
             self._get_extended_descriptors(type_descriptors), **kwargs
         )
-
-    @property
-    def type_keys(self):
-        return self.compound_type_keys | {"simple"}
-
-    @property
-    def compound_type_keys(self):
-        return {"list", "dict", "model"}
+        self._init_compound_type_keys()
 
     def find_model(self, data):
-        return find_descriptor(
-            data, descriptors=self.model_classes, type_keys=self.type_keys
-        )
+        return self._find_descriptor_class(data)
+
+    def _find_descriptor_class(self, data):
+        descriptors = self.model_classes
+        compound_type_keys = self._get_compound_type_keys()
+
+        type_name = None
+        if "type" in data:
+            type_name = data["type"]
+        else:
+            type_names = [
+                k for k in data
+                if k in compound_type_keys
+            ]
+
+            if len(type_names) > 1:
+                msg = u'Cannot have multiple types: {}'.format(
+                    _type_keys_message(type_names, data)
+                )
+                raise ValidationError(msg)
+
+            elif not type_names:
+                msg = u'Missing type for field spec'
+                raise ValidationError(msg)
+
+            else:
+                type_name = type_names[0]
+
+        if not isinstance(type_name, string_types):
+            raise ValidationError(
+                "Type name has to be str: {}".format(type_name)
+            )
+
+        for model_class in descriptors:
+            if model_class.get_type_name() == type_name:
+                return model_class
+
+        raise ValidationError("Did not find type {}".format(type_name))
+
+    def _init_compound_type_keys(self):
+        self._compound_type_keys = {
+            m.get_compound_type_key() for m in self.model_classes
+            if issubclass(m, CompoundTypeDescriptorBase)
+        }
+
+    def _get_compound_type_keys(self):
+        return self._compound_type_keys
 
     def _append_model_class(self, model_class):
         self.model_classes = tuple(self.model_classes + (model_class,))
+        self._init_compound_type_keys()
 
-    def _get_extended_descriptors(self, type_descriptors, nested_type=None):
+    def _get_extended_descriptors(self, type_descriptors):
+        if not type_descriptors:
+            return []
+
         final_descriptors = []
 
-        nested_type = self._build_nested_type(type_descriptors)
+        # TODO review options to propagate
+        nested_type = self.__class__([], required=True)
 
         for type_descriptor in type_descriptors:
-            final_descriptor = self._build_extended_descriptor(
-                type_descriptor, nested_type=nested_type
+            final_descriptor = self._build_domain_descriptor(
+                type_descriptor
             )
-            if final_descriptor:
-                final_descriptors.append(final_descriptor)
+
+            # set references for arbitrary deep nesting
+            nested_type._append_model_class(final_descriptor)
+            if issubclass(type_descriptor, CompoundTypeDescriptorBase):
+                final_descriptor.append_field(
+                    type_descriptor.get_compound_type_key(),
+                    type_descriptor.get_compound_type(nested_type)
+                )
+
+            final_descriptors.append(final_descriptor)
+
         return final_descriptors
 
-    def _build_extended_descriptor(self, type_descriptor, nested_type):
-        if self._desciptor_has_content_type(type_descriptor):
-            # these are self-referencing initialized in root
-            return None
+    def _build_domain_descriptor(self, type_descriptor):
+        class_name = "Domain{}".format(type_descriptor.__name__)
 
-        nested_class_name = "Nested{}".format(type_descriptor.__name__)
-
-        type_field_name, type_field = self._get_type_name_and_field(
-            type_descriptor
+        type_field = StringType(
+            required=True,
+            choices=[type_descriptor.type_name],
+            default=type_descriptor.type_name,
         )
 
-        TypeDescriptor = self._build_class(nested_class_name, type_descriptor)
-        TypeDescriptor.append_field(type_field_name, type_field)
-        return TypeDescriptor
-
-    def _build_class(self, class_name, type_descriptor):
         if self._type_descriptor_mixin:
             bases = (self._type_descriptor_mixin, type_descriptor)
         else:
             bases = (type_descriptor,)
 
-        return type(class_name, bases, {})
+        TypeDescriptor = type(class_name, bases, {})
+        TypeDescriptor.append_field("type", type_field)
 
-    def _build_nested_type(self, type_descriptors):
-        return None
-
-    def _get_type_name_and_field(self, type_descriptor, nested_type=None):
-        if issubclass(type_descriptor, ContextTypeDescriptorBase):
-            # Currently, context can only be resolved by string values
-            name = type_descriptor.type_name
-            type_field = StringType(required=True)
-
-        elif issubclass(type_descriptor, CompoundTypeDescriptorBase):
-            assert nested_type, "Compound types require a nested type"
-
-            name = type_descriptor.type_name
-            type_field = nested_type
-
-        else:
-            name = "simple"
-            type_field = StringType(required=True, choices=[
-                type_descriptor.type_name
-            ])
-
-        return name, type_field
-
-    def _desciptor_has_content_type(self, descriptor):
-        if not hasattr(descriptor, "has_content_type"):
-            return
-
-        return descriptor.has_content_type()
-
-
-class PolyTypeDescriptor(BasePolyTypeDescriptor):
-
-    def __init__(self, type_descriptors, **kwargs):
-        super(PolyTypeDescriptor, self).__init__(
-            type_descriptors, **kwargs
-        )
-
-    def find_model(self, data):
-        if "type" not in data:
-            raise ValidationError(
-                "Cannot instantiate type descriptor without type field"
-            )
-
-        type_ = data["type"]
-
-        return super(PolyTypeDescriptor, self).find_model(type_)
-
-    def _build_extended_descriptor(self, type_descriptor, nested_type):
-        if self._desciptor_has_content_type(type_descriptor):
-            self._init_content_types(type_descriptor, nested_type)
-
-        root_class_name = "Root{}".format(type_descriptor.__name__)
-        inner_class_name = "Inner{}".format(root_class_name)
-
-        type_field_name, type_field = self._get_type_name_and_field(
-            type_descriptor, nested_type=nested_type
-        )
-
-        # TODO the inner class can be removed after streamlining the DSL
-        TypeDescriptor = type(inner_class_name, (BaseModel,), {})
-        TypeDescriptor.append_field(type_field_name, type_field)
-
-        RootTypeDescriptor = self._build_class(
-            inner_class_name, type_descriptor
-        )
-        RootTypeDescriptor.append_field("type", ModelType(TypeDescriptor))
-
-        return RootTypeDescriptor
-
-    def _build_nested_type(self, type_descriptors):
-        return BasePolyTypeDescriptor(
-            type_descriptors, required=True
-        )
-
-    def _init_content_types(self, descriptor, nested_type):
-        nested_class_name = "Nested{}".format(descriptor.__name__)
-        TypeDescriptor = self._build_class(
-            nested_class_name, descriptor
-        )
-        TypeDescriptor.append_field(descriptor.type_name, nested_type)
-
-        # nested type descriptors get appended to them selves for
-        # arbitrary deep nesting
-        nested_type._append_model_class(TypeDescriptor)
+        return TypeDescriptor
 
 
 def _type_keys_message(type_keys, data):

@@ -11,10 +11,10 @@ from .conftest import blog_specs  # noqa
 class TestModel(object):
 
     def test_should_raise_on_multiple_types(self, blog_specs):
-        blog_specs['blog']['posts']['type']['simple'] = 'string'
+        # add dict, so it contains conflicting list and dict compound types
+        blog_specs['blog']['posts']['dict'] = {'type': 'string'}
 
         with pytest.raises(
-            # schematics.exceptions.ModelValidationError
             schematics.exceptions.ModelConversionError
 
         ) as excinfo:
@@ -22,7 +22,7 @@ class TestModel(object):
 
         assert excinfo.value.messages == {
             'field_descriptors': {'posts': [
-                'Cannot have multiple types: list, simple'
+                'Cannot have multiple types: dict, list'
             ]}
         }
 
@@ -37,9 +37,7 @@ class TestModel(object):
         blog_specs['extended_post'] = {
             ':bases': ["post"],
             "subtitle": {
-                "type": {
-                    "simple": "string"
-                }
+                "type": "string"
             }
         }
         acspec = Acspec(blog_specs)

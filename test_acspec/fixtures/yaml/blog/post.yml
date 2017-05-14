@@ -2,19 +2,18 @@
 author:
   required: true
   serialize_when_none: false
-  type:
-    model: author
+  model: author
+
 id:
-  type:
-    simple: string
+  type: string
+
 tags:
   serialize_when_none: false
-  type:
-    list:
-      simple: string
+  list:
+    type: string
+
 text:
-  type:
-    simple: string
+  type: string
+
 title:
-  type:
-    simple: string
+  type: string

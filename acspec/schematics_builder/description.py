@@ -9,8 +9,11 @@ from acspec.dsl import get_option, has_option
 from acspec.exceptions import MissingBaseClassMappingError
 from acspec.model import BaseModel
 from acspec.schematics_builder.fixes import DictType
-from acspec.schematics_builder.types.descriptor import PolyTypeDescriptor
 from acspec.schematics_builder.types.aggregate import ALL_DESCRIPTORS
+from acspec.schematics_builder.types.compound import (
+    CompoundTypeDescriptorBase, ContextTypeDescriptorBase
+)
+from acspec.schematics_builder.types.descriptor import PolyTypeDescriptor
 
 
 def build_description_class(
@@ -48,6 +51,25 @@ class SchematicsModelDescription(Model):
     @property
     def model_name(self):
         return self.options.name
+
+    @classmethod
+    def find_descriptor(cls, spec):
+        return cls.field_descriptors.field._find_descriptor_class(spec)
+
+    @classmethod
+    def build_schematics_type(cls, spec):
+        descriptor = cls.find_descriptor(spec)
+
+        if issubclass(descriptor, ContextTypeDescriptorBase):
+            raise ValueError("Cannot resolve context for model")
+
+        elif issubclass(descriptor, CompoundTypeDescriptorBase):
+            nested = cls.build_schematics_type(
+                spec[descriptor.get_compound_type_key()]
+            )
+            return descriptor.schematics_type(nested)
+
+        return descriptor.schematics_type()
 
     def build_model_class(self, class_mapping):
         bases = self._find_base_classes(class_mapping)

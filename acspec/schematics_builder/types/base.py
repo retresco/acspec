@@ -46,14 +46,16 @@ class InternalTypeDescriptor(BaseModel):
     def get_type_name(cls):
         return cls.type_name
 
+    @classmethod
+    def has_content_type(cls):
+        return False
+
     def get_requires_context(self):
-        return self.requires_context
+        return False
 
 
 class TypeDescriptorBase(InternalTypeDescriptor):
     __abstract_type_descriptor__ = True
-
-    requires_context = False
 
     class Options(object):
 
@@ -85,4 +87,4 @@ class TypeDescriptorBase(InternalTypeDescriptor):
 
     @property
     def non_kwarg_keys(self):
-        return {"simple", "type", "list", "dict", "model"}
+        return {"type"}

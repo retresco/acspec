@@ -1,6 +1,6 @@
 
 content:
-  type:
-    simple: string
-    list:
-      simple: string
+  list:
+    type: string
+  dict:
+    type: string

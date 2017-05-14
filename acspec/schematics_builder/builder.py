@@ -74,11 +74,6 @@ class SchematicsModelBuilder():
         model_class = resolveable.resolve(context, self.class_mapping)
         return model_class
 
-    def resolve_and_update_context(self, resolveable, context):
-        model_class = resolveable.resolve(context, self.class_mapping)
-
-        return model_class
-
     def _build_model_description(self, name, spec, **kw):
         options = {
             "key": name,
@@ -88,8 +83,8 @@ class SchematicsModelBuilder():
 
         for name, spec, is_option in iterspec(spec, with_options=True):
             if is_option:
-
                 options[remove_option_prefix(name)] = spec
+
             else:
                 field_descriptors[name] = spec
 

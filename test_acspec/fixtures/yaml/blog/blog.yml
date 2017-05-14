@@ -1,6 +1,5 @@
 
 
 posts:
-  type:
-    list:
-      model: post
+  list:
+    model: post

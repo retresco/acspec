@@ -10,7 +10,7 @@ class DictType(SchematicDictType):
     The schematics version does not wrap to_native validation errors to their
     key and they cannot be recovered.
 
-    This class nests items conversion and validatiob errors in their key.
+    This class nests items conversion and validation errors in their key.
     """
 
     def to_native(self, value, safe=False, context=None):

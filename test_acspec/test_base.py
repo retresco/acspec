@@ -40,9 +40,7 @@ class TestAcspec(object):
 
         blog_specs["import_error"] = {
             "test": {
-                "type": {
-                    "simple": "string"
-                }
+                "type": "string"
             }
         }
         acspec = Acspec(blog_specs)
@@ -83,7 +81,10 @@ class TestAcspec(object):
         self, blog_specs, post_data
     ):
         blog_specs["blog"]["messages"] = {
-            "type": {"dict": {"simple": "string"}}
+            "type": "dict",
+            "dict": {
+                "type": "string"
+            }
         }
         acspec = Acspec(blog_specs)
         model = acspec.BlogModel({

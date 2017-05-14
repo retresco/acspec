@@ -1,14 +1,13 @@
 
 first_name:
-  type:
-    simple: string
+  type: string
+
 id:
-  type:
-    simple: string
+  type: string
+
 last_name:
-  type:
-    simple: string
+  type: string
+
 birthday:
-  type:
-    simple: date_time
+  type: date_time
   serialized_format: "%Y-%m-%dT%H:%M:%SZ"

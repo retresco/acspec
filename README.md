@@ -9,22 +9,26 @@ dicts or YAML files.
 ```python
 from acspec.base import Acspec
 models = Acspec({
-    "todo": {
-        "title":{
-            "type": {
-                "simple": "string"
+    "todo_list": {
+        "todos": {
+            "type": "list",
+            "list": {
+                "type": "string"
             }
         }
     }
 })
 
-todo = models.TodoModel({"title": "write tests"})
-todo.validate()
+todo_list = models.TodoListModel({"todos": ["write test", "write library"]})
+todo_list.validate()
 ```
 
-There are 4 kinds of types, specified by the key of the type dict:
+There are simple types, and 3 compound types:
 
-    simple, list, dict and model.
+    list, dict and model.
+
+Note, the type, e.g. `"type": "list"`, is optional for compound types but may
+be added for consistency.
 
 
 ## Features
@@ -73,10 +77,8 @@ You can use the schematics options and validations in your specs:
 
 ```python
 acspec = Acspec({"todo": {
-    "title":{
-        "type": {
-            "simple": "string"
-        },
+    "title": {
+        "type": "string",
         "max_length": 20,
         "min_length": 3,
     }
@@ -92,10 +94,8 @@ model's name like this:
 ```python
 acspec = Acspec({"todo": {
     ":name": "MyTodoModel"
-    "title":{
-        "type": {
-            "simple": "string"
-        }
+    "title": {
+        "type": "string"
     }
 }})
 
@@ -111,18 +111,14 @@ The models can inherit from each other
 acspec = Acspec(
 {
     "base_message": {
-        "text":{
-            "type": {
-                "simple": "string"
-            }
+        "text": {
+            "type": "string"
         }
     },
     "message": {
         ":bases": ["base_message"],
-        "title":{
-            "type": {
-                "simple": "string"
-            }
+        "title": {
+            "type": "string"
         }
     },
 })
@@ -169,18 +165,16 @@ The model type enables you to reference/nest other models.
 models = Acspec({
     "todo_list": {
         "todos": {
-            "type": {
-                "list": {
-                    "model": "todo"
-                }
+            "type": "list",
+            "list": {
+                "type": "model",
+                "model": "todo"
             }
         }
     },
     "todo": {
-        "title":{
-            "type": {
-                "simple": "string"
-            }
+        "title": {
+            "type": "string"
         }
     }
 })
@@ -196,14 +190,15 @@ my_todo_list = models.TodoListModel({
 
 #### Update sysmodule and import your models
 
+For prototyping you can use the experimental feature to load the models in
+a python module. This way you can import them like any class defined in python.
+
 ```python
 from acspec.base import Acspec
 models = Acspec({
     "todo": {
         "title":{
-            "type": {
-                "simple": "string"
-            }
+            "type": "string"
         }
     }
 })
@@ -236,13 +231,23 @@ For more examples see `test_acspec/test_yspec.py`
 ## Customization
 
 Your models may need custom and helper methods. If inheritance (see above) is
-not flexible enough for you, consider assigning the methods afterwards, e.g.
+not flexible enough for you, consider assigning the methods afterwards
 
 ```python
 def get_identifier(self):
     return self.id
 
 acspec.TestModel.get_identifier = get_identifier
+
+```
+
+or extending the model
+
+```python
+class TestModel(acspec.TestModel):
+
+    def get_identifier(self):
+        return self.id
 ```
 
 
@@ -273,7 +278,7 @@ class MyTypeDescriptorMixin(Model):
 
 # Make it strict: raise when encounter an unknown key / rogue field
 MyDescriptionClass = build_description_class(
-  type_descriptor_mixin=MyTypeDescriptorMixin, strict=True
+    type_descriptor_mixin=MyTypeDescriptorMixin, strict=True
 )
 
 
@@ -281,9 +286,7 @@ models = Acspec(
     {
         "todo": {
             "title":{
-                "type": {
-                    "simple": "string"
-                },
+                "type": "string",
                 "other_field": "other_value"
             }
         }
