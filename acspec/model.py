@@ -20,12 +20,13 @@ class BaseModel(SchematicsModel):
 
             field_descriptor = FieldDescriptor(name)
 
-            # as schematics works like this, we need to copy the field
-            # to the subclasses
-            for subclass in cls._subclasses:
-                if name not in subclass._fields:
-                    subclass._fields[name] = metacopy(field)
-                    subclass._fields[name].owner_model = subclass
+            if hasattr(cls, "_subclasses"):
+                # depending on the schematics version, we can copy the field
+                # to the subclasses
+                for subclass in cls._subclasses:
+                    if name not in subclass._fields:
+                        subclass._fields[name] = metacopy(field)
+                        subclass._fields[name].owner_model = subclass
 
             # fix not to break the schematics model accidentially
             # TODO make the renaming transparent
