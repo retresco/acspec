@@ -92,3 +92,15 @@ def sanitize_identifier(original_name):
         name = "_{}".format(name)
 
     return name
+
+
+def get_all_subclasses(cls):
+    # we don't use the schematics > 1.1.2 and > 2.0.1 helper because we don't
+    # want to depend on the specific versions
+    all_subclasses = []
+
+    for subclass in cls.__subclasses__():
+        all_subclasses.append(subclass)
+        all_subclasses.extend(get_all_subclasses(subclass))
+
+    return all_subclasses

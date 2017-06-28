@@ -4,6 +4,8 @@ from schematics.models import FieldDescriptor
 from schematics.models import metacopy
 from schematics.types import BaseType
 
+from acspec.utils import get_all_subclasses
+
 
 class BaseModel(SchematicsModel):
 
@@ -20,10 +22,10 @@ class BaseModel(SchematicsModel):
 
             field_descriptor = FieldDescriptor(name)
 
-            if hasattr(cls, "_subclasses"):
-                # depending on the schematics version, we can copy the field
-                # to the subclasses
-                for subclass in cls._subclasses:
+            # copy field to subclasses
+            subclasses = get_all_subclasses(cls)
+            if subclasses:
+                for subclass in subclasses:
                     if name not in subclass._fields:
                         subclass._fields[name] = metacopy(field)
                         subclass._fields[name].owner_model = subclass
