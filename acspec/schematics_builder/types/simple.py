@@ -1,11 +1,12 @@
 from schematics.types import BaseType, StringType, NumberType
 from schematics.types import URLType, EmailType
 from schematics.types import IntType, LongType, FloatType, DecimalType
-from schematics.types import DateType, DateTimeType
+from schematics.types import DateType
 from schematics.types import BooleanType
 
 from schematics.types.compound import ListType
 
+from acspec.schematics_builder.fixes import DateTimeType
 from acspec.schematics_builder.types.base import TypeDescriptorBase
 
 # for reference, all simple schematics types:

@@ -1,7 +1,11 @@
+import sys
+import datetime
+
 from six import iteritems
 
-from schematics.exceptions import BaseError, ValidationError
+from schematics.exceptions import BaseError, ValidationError, ConversionError
 from schematics.transforms import EMPTY_DICT
+from schematics.types import DateTimeType as SchematicDateTimeType
 from schematics.types.compound import DictType as SchematicDictType
 
 
@@ -39,3 +43,49 @@ class DictType(SchematicDictType):
             raise ValidationError(errors)
 
         return result
+
+
+class DateTimeType(SchematicDateTimeType):
+    """
+    Let's be nice and support iso8601.
+
+    Note, Python does not yet support full iso8601. So we fix it.
+
+    See http://bugs.python.org/issue15873
+    """
+
+    DEFAULT_FORMATS = (
+        '%Y-%m-%dT%H:%M:%S.%f',  '%Y-%m-%dT%H:%M:%S',
+        '%Y-%m-%dT%H:%M:%S.%fZ', '%Y-%m-%dT%H:%M:%SZ',
+        '%Y-%m-%dT%H:%M:%S.%f%z'
+    )
+
+    def to_native(self, value, context=None):
+        if isinstance(value, datetime.datetime):
+            return value
+
+        for fmt in self.formats:
+            try:
+                return datetime.datetime.strptime(value, fmt)
+            except (ValueError, TypeError):
+                continue
+
+        # as last ressort, try https://stackoverflow.com/a/13182163/1029655
+        if (
+            len(value) > 2 and value[-3] == ":" and
+            '%Y-%m-%dT%H:%M:%S.%f%z' in self.formats
+        ):
+            try:
+                return datetime.datetime.strptime(
+                    ''.join(value.rsplit(':', 1)), '%Y-%m-%dT%H:%M:%S.%f%z'
+                )
+            except (ValueError, TypeError):
+                pass
+
+        if self.formats == self.DEFAULT_FORMATS:
+            message = self.messages['parse'].format(value)
+        else:
+            message = self.messages['parse_formats'].format(
+                value, ", ".join(self.formats)
+            )
+        raise ConversionError(message)
