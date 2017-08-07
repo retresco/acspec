@@ -19,12 +19,14 @@ with open(os.path.join(os.path.dirname(__file__), name + '/__init__.py')) as f:
 
 install_requires = [
     'schematics >=1.1.0,<2.0.0',
-    'futures',
     'pyyaml'
 ]
 
 if sys.version_info < (3,0):
     install_requires.append("future")
+
+if sys.version_info < (3,2):
+    install_requires.append("futures")    
 
 tests_require = [
     'mock >= 1.0.1',
